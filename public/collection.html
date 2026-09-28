@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>My Blueprint Collection · ARC Blueprint Map</title>
+  <link rel="stylesheet" href="/collection.css">
+</head>
+<body>
+  <header>
+    <a href="/">← Blueprint map</a>
+    <h1>My Blueprint Collection</h1>
+    <p>Identified from your September 28 screenshots · <strong id="count">73 of 83 found</strong></p>
+  </header>
+  <main>
+    <div class="controls">
+      <label for="search">Find a blueprint</label><input id="search" type="search" placeholder="Search by name">
+      <div class="filters" role="group" aria-label="Collection filter">
+        <button data-filter="all" aria-pressed="true">All 83</button>
+        <button data-filter="missing" aria-pressed="false">Missing 10</button>
+        <button data-filter="obtained" aria-pressed="false">Found 73</button>
+      </div>
+    </div>
+    <p class="note">The cards follow the same slot order as the game. Empty slots in your screenshots are labeled <strong>Missing</strong>. This records what was learned when the screenshots were taken; it does not show where a blueprint dropped.</p>
+    <div id="grid" class="grid" aria-live="polite"></div>
+    <p class="source">Names and slot order: <a href="https://arcraiders.wiki/wiki/Blueprints">ARC Raiders Wiki blueprint grid</a>. Item artwork and catalog: <a href="https://metaforge.app/arc-raiders/blueprint-tracker">MetaForge blueprint tracker</a>. ARC Raiders art © Embark Studios.</p>
+  </main>
+  <script type="module" src="/collection.js"></script>
+</body>
+</html>

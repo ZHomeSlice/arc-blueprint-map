@@ -1,0 +1,421 @@
+{
+  "source": "https://metaforge.app/api/arc-raiders/items?item_type=Blueprint&limit=100",
+  "fetchedAt": "2026-09-28T14:58:39.949Z",
+  "entries": [
+    {
+      "id": "angled-grip-ii-recipe",
+      "name": "Angled Grip II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/angled-grip-ii.webp"
+    },
+    {
+      "id": "angled-grip-iii-recipe",
+      "name": "Angled Grip III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/angled-grip-iii-recipe.webp"
+    },
+    {
+      "id": "anvil-recipe",
+      "name": "Anvil Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/anvil.webp"
+    },
+    {
+      "id": "aphelion-rifle-blueprint",
+      "name": "Aphelion Rifle Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/aphelion-rifle-blueprint.webp"
+    },
+    {
+      "id": "barricade-kit-recipe",
+      "name": "Barricade Kit Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/barricade-kit.webp"
+    },
+    {
+      "id": "bettina-blueprint",
+      "name": "Bettina Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/bettina-blueprint.webp"
+    },
+    {
+      "id": "blaze-grenade-blueprint",
+      "name": "Blaze Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/blaze-grenade.webp"
+    },
+    {
+      "id": "blue-light-stick-blueprint",
+      "name": "Blue Light Stick Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/blue-light-stick.webp"
+    },
+    {
+      "id": "bobcat-i-recipe",
+      "name": "Bobcat Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/bobcat-i-recipe.webp"
+    },
+    {
+      "id": "burltetta-recipe",
+      "name": "Burletta Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/burltetta-recipe.webp"
+    },
+    {
+      "id": "canto-blueprint",
+      "name": "Canto Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/canto-blueprint.webp"
+    },
+    {
+      "id": "combat-mk3-aggressive-blueprint",
+      "name": "Combat Mk.3 (Aggressive) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/combat-mk3-aggressive-blueprint.webp"
+    },
+    {
+      "id": "combat-mk-3-flanking",
+      "name": "Combat Mk. 3 (Flanking) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/combat-mk-3-flanking.webp"
+    },
+    {
+      "id": "compensator-ii-recipe",
+      "name": "Compensator II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/compensator-ii.webp"
+    },
+    {
+      "id": "compensator-iii-recipe",
+      "name": "Compensator III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/compensator-iii.webp"
+    },
+    {
+      "id": "complex-gun-parts-blueprint",
+      "name": "Complex Gun Parts Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/complex-gun-parts.webp"
+    },
+    {
+      "id": "crash-mat-blueprint",
+      "name": "Crash Mat Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/crash-mat-blueprint.webp"
+    },
+    {
+      "id": "deadline-blueprint",
+      "name": "Deadline Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/deadline.webp"
+    },
+    {
+      "id": "defibrillator-recipe",
+      "name": "Defibrillator Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/defibrillator.webp"
+    },
+    {
+      "id": "dolabra-blueprint",
+      "name": "Dolabra Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/dolabra-blueprint.webp"
+    },
+    {
+      "id": "equalizer-recipe",
+      "name": "Equalizer Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/equalizer.webp"
+    },
+    {
+      "id": "explosive-mine-blueprint",
+      "name": "Explosive Mine Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/explosive-mine-blueprint.webp"
+    },
+    {
+      "id": "extended-barrel-ii-blueprint",
+      "name": "Extended Barrel II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-barrel-ii-blueprint.webp"
+    },
+    {
+      "id": "extended-barrel-recipe",
+      "name": "Extended Barrel III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-barrel-recipe.webp"
+    },
+    {
+      "id": "extended-light-mag-ii-recipe",
+      "name": "Extended Light Mag II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-light-mag-ii.webp"
+    },
+    {
+      "id": "extended-light-mag-iii-recipe",
+      "name": "Extended Light Mag III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-light-mag-iii.webp"
+    },
+    {
+      "id": "extended-medium-mag-ii-recipe",
+      "name": "Extended Medium Mag II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-medium-mag-ii.webp"
+    },
+    {
+      "id": "extended-medium-mag-iii-blueprint",
+      "name": "Extended Medium Mag III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-medium-mag-iii.webp"
+    },
+    {
+      "id": "extended-shotgun-mag-ii-recipe",
+      "name": "Extended Shotgun Mag II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-shotgun-mag-ii.webp"
+    },
+    {
+      "id": "extended-shotgun-mag-iii-recipe",
+      "name": "Extended Shotgun Mag III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/extended-shotgun-mag-iii.webp"
+    },
+    {
+      "id": "fireworks-box-blueprint",
+      "name": "Fireworks Box Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/fireworks-box-blueprint.webp"
+    },
+    {
+      "id": "gas-mine-blueprint",
+      "name": "Gas Mine Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/gas-mine.webp"
+    },
+    {
+      "id": "green-light-stick-blueprint",
+      "name": "Green Light Stick Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/green-light-stick.webp"
+    },
+    {
+      "id": "heavy-gun-parts-recipe",
+      "name": "Heavy Gun Parts Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/heavy-gun-parts.webp"
+    },
+    {
+      "id": "hullcracker-blueprint",
+      "name": "Hullcracker Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/hullcracker.webp"
+    },
+    {
+      "id": "il-toro-recipe",
+      "name": "Il Toro Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/il-toro-recipe.webp"
+    },
+    {
+      "id": "jolt-mine-recipe",
+      "name": "Jolt Mine Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/jolt-mine.webp"
+    },
+    {
+      "id": "jupiter-i-recipe",
+      "name": "Jupiter Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/jupiter-i-recipe.webp"
+    },
+    {
+      "id": "light-gun-parts-recipe",
+      "name": "Light Gun Parts Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/light-gun-parts.webp"
+    },
+    {
+      "id": "lightweight-stock-recipe",
+      "name": "Lightweight Stock Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/lightweight-stock.webp"
+    },
+    {
+      "id": "looting-mk-3-safekeeper-blueprint",
+      "name": "Looting MK. 3 (Safekeeper) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/looting-mk-3-safekeeper-blueprint.webp"
+    },
+    {
+      "id": "looting-mk-3-survivor-blueprint",
+      "name": "Looting MK. 3 (Survivor) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/looting-mk-3-survivor.webp"
+    },
+    {
+      "id": "lure-grenade-recipe",
+      "name": "Lure Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/lure-grenade.webp"
+    },
+    {
+      "id": "medium-gun-parts-recipe",
+      "name": "Medium Gun Parts Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/medium-gun-parts.webp"
+    },
+    {
+      "id": "muzzle-brake-ii-recipe",
+      "name": "Muzzle Brake II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/muzzle-brake-ii.webp"
+    },
+    {
+      "id": "muzzle-brake-iii-recipe",
+      "name": "Muzzle Brake III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/muzzle-brake-iii.webp"
+    },
+    {
+      "id": "osprey-recipe",
+      "name": "Osprey Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/osprey.webp"
+    },
+    {
+      "id": "padded-stock-recipe",
+      "name": "Padded Stock Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/padded-stock.webp"
+    },
+    {
+      "id": "powered-descender-blueprint",
+      "name": "Powered Descender Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/powered-descender-blueprint.webp"
+    },
+    {
+      "id": "pulse-mine-blueprint",
+      "name": "Pulse Mine Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/pulse-mine.webp"
+    },
+    {
+      "id": "rascal-blueprint",
+      "name": "Rascal Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/rascal-blueprint.webp"
+    },
+    {
+      "id": "red-light-stick-blueprint",
+      "name": "Red Light Stick Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/red-light-stick.webp"
+    },
+    {
+      "id": "remote-raider-flare-blueprint",
+      "name": "Remote Raider Flare Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/remote-raider-flare.webp"
+    },
+    {
+      "id": "seeker-grenade-blueprint",
+      "name": "Seeker Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/seeker-grenade.webp"
+    },
+    {
+      "id": "shotgun-choke-ii-recipe",
+      "name": "Shotgun Choke II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/shotgun-choke-ii.webp"
+    },
+    {
+      "id": "shotgun-choke-iii-recipe",
+      "name": "Shotgun Choke III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/shotgun-choke-iii.webp"
+    },
+    {
+      "id": "shotgun-silencer-blueprint",
+      "name": "Shotgun Silencer Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/shotgun-silencer.webp"
+    },
+    {
+      "id": "showstopper-blueprint",
+      "name": "Showstopper Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/showstopper.webp"
+    },
+    {
+      "id": "silencer-i-recipe",
+      "name": "Silencer I Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/silencer-i.webp"
+    },
+    {
+      "id": "silencer-ii-recipe",
+      "name": "Silencer II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/silencer-ii.webp"
+    },
+    {
+      "id": "smoke-grenade-blueprint",
+      "name": "Smoke Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/smoke-grenade.webp"
+    },
+    {
+      "id": "snap-hook-recipe",
+      "name": "Snap Hook Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/snap-hook.webp"
+    },
+    {
+      "id": "stable-stock-ii-recipe",
+      "name": "Stable Stock II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/stable-stock-ii.webp"
+    },
+    {
+      "id": "stable-stock-iii-recipe",
+      "name": "Stable Stock III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/stable-stock-iii.webp"
+    },
+    {
+      "id": "surge-coil-blueprint",
+      "name": "Surge Coil Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/surge-coil-blueprint.webp"
+    },
+    {
+      "id": "tactical-mk3-defensive-blueprint",
+      "name": "Tactical MK.3 (Defensive) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/tactical-mk3-defensive.webp"
+    },
+    {
+      "id": "tacical-mk3-healing-blueprint",
+      "name": "Tactical MK.3 (Healing) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/tacical-mk3-healing-blueprint.webp"
+    },
+    {
+      "id": "tactical-mk-3-revival-blueprint",
+      "name": "Tactical Mk. 3 (Revival) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/tactical-mk-3-revival.webp"
+    },
+    {
+      "id": "utility-augment-t3-smoke-blueprint",
+      "name": "Tactical MK.3 (Smoke) Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/utility-augment-t3-smoke-blueprint.webp"
+    },
+    {
+      "id": "tagging-grenade-recipe",
+      "name": "Tagging Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/tagging-grenade.webp"
+    },
+    {
+      "id": "tempest-i-recipe",
+      "name": "Tempest Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/tempest-i.webp"
+    },
+    {
+      "id": "torrent-i-recipe",
+      "name": "Torrente Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/torrent-i-recipe.webp"
+    },
+    {
+      "id": "trailblazer-grenade-blueprint",
+      "name": "Trailblazer Grenade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/trailblazer-grenade.webp"
+    },
+    {
+      "id": "trigger-nade-recipe",
+      "name": "Trigger Nade Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/trigger-nade.webp"
+    },
+    {
+      "id": "venator-recipe",
+      "name": "Venator Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/venator.webp"
+    },
+    {
+      "id": "vertical-grip-ii-recipe",
+      "name": "Vertical Grip II Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/vertical-grip-ii.webp"
+    },
+    {
+      "id": "vertical-grip-iii-recipe",
+      "name": "Vertical Grip III Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/vertical-grip-iii.webp"
+    },
+    {
+      "id": "vita-shot-recipe",
+      "name": "Vita Shot Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/vita-shot.webp"
+    },
+    {
+      "id": "vita-spray-recipe",
+      "name": "Vita Spray Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/vita-spray.webp"
+    },
+    {
+      "id": "vulcano-blueprint",
+      "name": "Vulcano Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/vulcano.webp"
+    },
+    {
+      "id": "white-flag-blueprint",
+      "name": "White Flag Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/white-flag-blueprint.webp"
+    },
+    {
+      "id": "wolfpack-recipe",
+      "name": "Wolfpack Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/wolfpack.webp"
+    },
+    {
+      "id": "yellow-light-stick-blueprint",
+      "name": "Yellow Light Stick Blueprint",
+      "icon": "https://static.metaforge.app/arc-raiders/icons/yellow-light-stick-blueprint.webp"
+    }
+  ]
+}

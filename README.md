@@ -1,0 +1,39 @@
+# ARC Blueprint Map
+
+A private local prototype for tracking where you found blueprints in ARC Raiders on Windows PC. It scans a shared game window for blueprint tiles and names, then matches a nearby in-game map view to place the sighting on your private map. All screenshots are processed in your browser; findings and map images are saved in that browser's local storage. Export JSON for a backup.
+
+## Run
+
+1. In PowerShell, run `.\Start-Blueprint-Map.ps1`. It uses Node.js from your PATH or Codex's bundled Node and opens the local app. If neither is available, install [Node.js](https://nodejs.org/) 20 or newer.
+2. Open `http://127.0.0.1:4177` in Chrome or Edge if it does not open automatically.
+3. Built-in presets include Stella Montis upper and lower, Dam Battlegrounds, Spaceport and its underground, Buried City, Blue Gate and its underground, and Riven Tides. The tracker reads the in-game map title and verifies its image when you open the map, then switches to the matching preset. You can also select a preset to browse it or correct a pin. Pins are stored separately for each map and floor. The old **Use full Stella Montis upper map** button remains for the supplied finds.
+4. Select **Start capture** in Chrome or Edge. In the browser picker, choose **Window → ARC Raiders**. If ARC Raiders is absent, choose **Entire Screen** and select the monitor where the game runs. Borderless windowed mode makes the game more likely to appear as a selectable window.
+5. Check the **Live game preview**. When sharing Entire Screen, it shows whatever is in front on that monitor; switch back to ARC Raiders and keep it visible while playing. The app keeps scanning in the background. If you selected a browser tab by mistake, stop and start capture again.
+6. Select **Open floating game alert** and position its small window where you can see it over the game. Then press **E** to open the loot container. The floating window shows the captured blueprint tile. Press **M** and keep the in-game map open until it shows **Location captured** or **Pin saved**. The location appears immediately as a blue provisional pin. A name read by OCR or a strong catalog-icon match becomes a saved find automatically; review weaker icon suggestions in the tracker and confirm the correct icon. The app recognizes the inventory and map screens from the shared video; it cannot read keys pressed in the game.
+7. To repair a sighting that got a wrong position, select it under **Blueprint sightings**, then choose **Correct selected sighting from a saved in-game map screenshot** and pick the screenshot taken soon after that container. The app rechecks the player arrow and adjusts other unsaved sightings from the same container. Review each pin before saving.
+8. **Enable Windows notifications** is optional. It requires browser permission and Windows may hide notifications over a fullscreen game. The floating game alert uses Chrome's always-on-top Picture-in-Picture window and does not require notification permission. Borderless windowed mode is recommended; exclusive fullscreen can cover other windows. If you reload the tracker, open the floating alert again with its button.
+9. Select **Add the 4 finds from your screenshots** to plot Defibrillator, Aphelion, Extended Barrel II, and Looting Mk. 3 (Safekeeper). These are approximate player positions from nearby map screenshots. The latter two were already learned, so they are duplicate finds rather than collection progress. Review the pins before relying on them.
+
+OCR uses a bundled copy of [Tesseract.js](https://github.com/naptha/tesseract.js) and its English language data. It works offline after launch. Frames are not sent to a server. The app binds only to `127.0.0.1`.
+
+**Blueprint sightings** keeps a local timestamp, captured blueprint tile, and reduced screenshot for review. A one-second visual scan checks for the blue grid and white blueprint book icon, then compares the tile with the local blueprint catalog. Hover over an item so OCR can also read its name. Open the in-game map soon afterward: the visual scan matches the player arrow and stores the location with the sighting, even while OCR is busy. Located sightings appear as blue provisional pins even if the name is still uncertain. Select a sighting to view its captured icon at a larger size. Uncertain matches show up to three catalog icons that you can confirm with one click; you can also type the name. Strong name matches are saved automatically. Mark false alerts **Not a blueprint**; they remain in the backup and can be restored. The log keeps the latest 12 sightings and is included in JSON export/import.
+
+The two blueprint collection screenshots show **73/83 found**. They show learned items, not which blueprint was acquired on that run or where it was found. The visual detector only checks the left loot container in a 16:9 in-raid inventory view. It ignores the collection page. It is a tentative cue: the item tooltip and map view are still needed for a named, located find.
+
+The [labeled collection page](http://127.0.0.1:4177/collection.html) identifies all 83 collection slots and marks the 10 empty slots from those screenshots. It uses the [ARC Raiders Wiki blueprint grid](https://arcraiders.wiki/wiki/Blueprints) for slot order and locally cached icons from [MetaForge's 83-item blueprint catalog](https://metaforge.app/arc-raiders/blueprint-tracker). The same results are in `Blueprint-Collection-2026-09-28.md`. This is a September 28 snapshot of collection status, not a record of find locations.
+
+Bundled OCR files: Tesseract.js and tesseract.js-core 7.0.0 (license files in `public/vendor/`), plus the [English traineddata package](https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz).
+
+## Map matching and limitations
+
+Blueprint name recognition uses OCR and catalog icon matching. Some item icons remain uncertain and require review. The built-in [map overviews](https://arcraiders.wiki/wiki/Category:Map_overview_images) cover the six main maps plus the Stella Montis, Spaceport, and Blue Gate lower or underground layers. The app reads the in-game map title, aligns a clear image patch with that map's overview, compares its actual brightness to distinguish floors, then transforms the cyan player arrow into a map coordinate. It matched the supplied Stella Montis upper map screenshots in local testing. The other map presets pass asset and coordinate geometry checks using simulated crops, but need real in-game screenshots to tune their zoom and reliability. If the map title or floor cannot be determined confidently, the sighting remains unpinned for review. Custom reference images still use the selected custom map.
+
+For user-supplied reference screenshots on other maps, matching still requires the two screenshots to overlap and use the same aspect ratio, zoom, and layer. A reference screenshot cannot cover the whole world map. The app always asks you to review a suggested pin.
+
+The bundled map images were created by @Cartotect and hosted by ARC Raiders Wiki. See [map attribution](public/maps/ATTRIBUTION.md) for individual source pages. ARC Raiders game art is © Embark Studios. The local app includes the images for personal map matching.
+
+The app does not use an undocumented game API, inspect game memory, or modify game files.
+
+## Validate
+
+Run `node --test` for blueprint parsing and map-title/floor selection. `node research/test_map_title_ocr.mjs` reads titles from actual game screenshots; `node research/check_stella_layers.mjs` checks floor selection on six supplied Stella screenshots. `node research/test_full_map.mjs` checks their pin coordinates. `node research/test_map_presets.mjs` checks all map assets and separate floor pins; `node research/test_map_match_synthetic.mjs` checks geometry and preset selection using simulated crops of all nine layers. The browser checks require the local server to be running.

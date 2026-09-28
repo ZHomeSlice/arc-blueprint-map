@@ -1,0 +1,666 @@
+[
+  {
+    "slot": 1,
+    "row": 1,
+    "column": 1,
+    "name": "Extended Shotgun Mag III",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 2,
+    "row": 1,
+    "column": 2,
+    "name": "Angled Grip III",
+    "obtained": true,
+    "blue_fraction": 0.605
+  },
+  {
+    "slot": 3,
+    "row": 1,
+    "column": 3,
+    "name": "Pulse Mine",
+    "obtained": true,
+    "blue_fraction": 0.518
+  },
+  {
+    "slot": 4,
+    "row": 1,
+    "column": 4,
+    "name": "Silencer II",
+    "obtained": true,
+    "blue_fraction": 0.649
+  },
+  {
+    "slot": 5,
+    "row": 1,
+    "column": 5,
+    "name": "Red Light Stick",
+    "obtained": true,
+    "blue_fraction": 0.609
+  },
+  {
+    "slot": 6,
+    "row": 1,
+    "column": 6,
+    "name": "Tactical Mk. 3 (Revival)",
+    "obtained": true,
+    "blue_fraction": 0.438
+  },
+  {
+    "slot": 7,
+    "row": 1,
+    "column": 7,
+    "name": "Compensator II",
+    "obtained": true,
+    "blue_fraction": 0.581
+  },
+  {
+    "slot": 8,
+    "row": 1,
+    "column": 8,
+    "name": "Muzzle Brake III",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 9,
+    "row": 1,
+    "column": 9,
+    "name": "Tactical Mk. 3 (Defensive)",
+    "obtained": true,
+    "blue_fraction": 0.421
+  },
+  {
+    "slot": 10,
+    "row": 1,
+    "column": 10,
+    "name": "Vita Spray",
+    "obtained": true,
+    "blue_fraction": 0.621
+  },
+  {
+    "slot": 11,
+    "row": 2,
+    "column": 1,
+    "name": "Medium Gun Parts",
+    "obtained": true,
+    "blue_fraction": 0.489
+  },
+  {
+    "slot": 12,
+    "row": 2,
+    "column": 2,
+    "name": "Tagging Grenade",
+    "obtained": true,
+    "blue_fraction": 0.428
+  },
+  {
+    "slot": 13,
+    "row": 2,
+    "column": 3,
+    "name": "Crash Mat",
+    "obtained": true,
+    "blue_fraction": 0.486
+  },
+  {
+    "slot": 14,
+    "row": 2,
+    "column": 4,
+    "name": "Bobcat",
+    "obtained": true,
+    "blue_fraction": 0.576
+  },
+  {
+    "slot": 15,
+    "row": 2,
+    "column": 5,
+    "name": "Defibrillator",
+    "obtained": true,
+    "blue_fraction": 0.695
+  },
+  {
+    "slot": 16,
+    "row": 2,
+    "column": 6,
+    "name": "Jupiter",
+    "obtained": true,
+    "blue_fraction": 0.624
+  },
+  {
+    "slot": 17,
+    "row": 2,
+    "column": 7,
+    "name": "Extended Medium Mag II",
+    "obtained": true,
+    "blue_fraction": 0.507
+  },
+  {
+    "slot": 18,
+    "row": 2,
+    "column": 8,
+    "name": "Tactical Mk. 3 (Smoke)",
+    "obtained": true,
+    "blue_fraction": 0.437
+  },
+  {
+    "slot": 19,
+    "row": 2,
+    "column": 9,
+    "name": "Smoke Grenade",
+    "obtained": true,
+    "blue_fraction": 0.497
+  },
+  {
+    "slot": 20,
+    "row": 2,
+    "column": 10,
+    "name": "Dolabra",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 21,
+    "row": 3,
+    "column": 1,
+    "name": "Shotgun Silencer",
+    "obtained": true,
+    "blue_fraction": 0.602
+  },
+  {
+    "slot": 22,
+    "row": 3,
+    "column": 2,
+    "name": "White Flag",
+    "obtained": true,
+    "blue_fraction": 0.676
+  },
+  {
+    "slot": 23,
+    "row": 3,
+    "column": 3,
+    "name": "Extended Light Mag II",
+    "obtained": true,
+    "blue_fraction": 0.594
+  },
+  {
+    "slot": 24,
+    "row": 3,
+    "column": 4,
+    "name": "Showstopper",
+    "obtained": true,
+    "blue_fraction": 0.518
+  },
+  {
+    "slot": 25,
+    "row": 3,
+    "column": 5,
+    "name": "Remote Raider Flare",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 26,
+    "row": 3,
+    "column": 6,
+    "name": "Angled Grip II",
+    "obtained": true,
+    "blue_fraction": 0.617
+  },
+  {
+    "slot": 27,
+    "row": 3,
+    "column": 7,
+    "name": "Stable Stock III",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 28,
+    "row": 3,
+    "column": 8,
+    "name": "Aphelion",
+    "obtained": true,
+    "blue_fraction": 0.688
+  },
+  {
+    "slot": 29,
+    "row": 3,
+    "column": 9,
+    "name": "Tempest",
+    "obtained": true,
+    "blue_fraction": 0.611
+  },
+  {
+    "slot": 30,
+    "row": 3,
+    "column": 10,
+    "name": "Tactical Mk. 3 (Healing)",
+    "obtained": true,
+    "blue_fraction": 0.436
+  },
+  {
+    "slot": 31,
+    "row": 4,
+    "column": 1,
+    "name": "Vertical Grip III",
+    "obtained": true,
+    "blue_fraction": 0.691
+  },
+  {
+    "slot": 32,
+    "row": 4,
+    "column": 2,
+    "name": "Wolfpack",
+    "obtained": true,
+    "blue_fraction": 0.476
+  },
+  {
+    "slot": 33,
+    "row": 4,
+    "column": 3,
+    "name": "Combat Mk. 3 (Flanking)",
+    "obtained": true,
+    "blue_fraction": 0.373
+  },
+  {
+    "slot": 34,
+    "row": 4,
+    "column": 4,
+    "name": "Torrente",
+    "obtained": true,
+    "blue_fraction": 0.64
+  },
+  {
+    "slot": 35,
+    "row": 4,
+    "column": 5,
+    "name": "Jolt Mine",
+    "obtained": true,
+    "blue_fraction": 0.443
+  },
+  {
+    "slot": 36,
+    "row": 4,
+    "column": 6,
+    "name": "Hullcracker",
+    "obtained": true,
+    "blue_fraction": 0.622
+  },
+  {
+    "slot": 37,
+    "row": 4,
+    "column": 7,
+    "name": "Vita Shot",
+    "obtained": true,
+    "blue_fraction": 0.683
+  },
+  {
+    "slot": 38,
+    "row": 4,
+    "column": 8,
+    "name": "Deadline",
+    "obtained": true,
+    "blue_fraction": 0.421
+  },
+  {
+    "slot": 39,
+    "row": 4,
+    "column": 9,
+    "name": "Shotgun Choke II",
+    "obtained": true,
+    "blue_fraction": 0.623
+  },
+  {
+    "slot": 40,
+    "row": 4,
+    "column": 10,
+    "name": "Anvil",
+    "obtained": true,
+    "blue_fraction": 0.643
+  },
+  {
+    "slot": 41,
+    "row": 5,
+    "column": 1,
+    "name": "Osprey",
+    "obtained": true,
+    "blue_fraction": 0.692
+  },
+  {
+    "slot": 42,
+    "row": 5,
+    "column": 2,
+    "name": "Looting Mk. 3 (Survivor)",
+    "obtained": true,
+    "blue_fraction": 0.415
+  },
+  {
+    "slot": 43,
+    "row": 5,
+    "column": 3,
+    "name": "Extended Shotgun Mag II",
+    "obtained": true,
+    "blue_fraction": 0.426
+  },
+  {
+    "slot": 44,
+    "row": 5,
+    "column": 4,
+    "name": "Powered Descender",
+    "obtained": true,
+    "blue_fraction": 0.646
+  },
+  {
+    "slot": 45,
+    "row": 5,
+    "column": 5,
+    "name": "Compensator III",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 46,
+    "row": 5,
+    "column": 6,
+    "name": "Vulcano",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 47,
+    "row": 5,
+    "column": 7,
+    "name": "Lightweight Stock",
+    "obtained": true,
+    "blue_fraction": 0.705
+  },
+  {
+    "slot": 48,
+    "row": 5,
+    "column": 8,
+    "name": "Trailblazer",
+    "obtained": true,
+    "blue_fraction": 0.596
+  },
+  {
+    "slot": 49,
+    "row": 5,
+    "column": 9,
+    "name": "Barricade Kit",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 50,
+    "row": 5,
+    "column": 10,
+    "name": "Green Light Stick",
+    "obtained": true,
+    "blue_fraction": 0.617
+  },
+  {
+    "slot": 51,
+    "row": 6,
+    "column": 1,
+    "name": "Extended Medium Mag III",
+    "obtained": true,
+    "blue_fraction": 0.478
+  },
+  {
+    "slot": 52,
+    "row": 6,
+    "column": 2,
+    "name": "Lure Grenade",
+    "obtained": true,
+    "blue_fraction": 0.533
+  },
+  {
+    "slot": 53,
+    "row": 6,
+    "column": 3,
+    "name": "Combat Mk. 3 (Aggressive)",
+    "obtained": true,
+    "blue_fraction": 0.368
+  },
+  {
+    "slot": 54,
+    "row": 6,
+    "column": 4,
+    "name": "Light Gun Parts",
+    "obtained": true,
+    "blue_fraction": 0.351
+  },
+  {
+    "slot": 55,
+    "row": 6,
+    "column": 5,
+    "name": "Extended Light Mag III",
+    "obtained": true,
+    "blue_fraction": 0.565
+  },
+  {
+    "slot": 56,
+    "row": 6,
+    "column": 6,
+    "name": "Il Toro",
+    "obtained": true,
+    "blue_fraction": 0.654
+  },
+  {
+    "slot": 57,
+    "row": 6,
+    "column": 7,
+    "name": "Padded Stock",
+    "obtained": true,
+    "blue_fraction": 0.555
+  },
+  {
+    "slot": 58,
+    "row": 6,
+    "column": 8,
+    "name": "Heavy Gun Parts",
+    "obtained": true,
+    "blue_fraction": 0.386
+  },
+  {
+    "slot": 59,
+    "row": 6,
+    "column": 9,
+    "name": "Rascal",
+    "obtained": true,
+    "blue_fraction": 0.619
+  },
+  {
+    "slot": 60,
+    "row": 6,
+    "column": 10,
+    "name": "Canto",
+    "obtained": true,
+    "blue_fraction": 0.564
+  },
+  {
+    "slot": 61,
+    "row": 7,
+    "column": 1,
+    "name": "Bettina I",
+    "obtained": true,
+    "blue_fraction": 0.616
+  },
+  {
+    "slot": 62,
+    "row": 7,
+    "column": 2,
+    "name": "Fireworks Box",
+    "obtained": true,
+    "blue_fraction": 0.455
+  },
+  {
+    "slot": 63,
+    "row": 7,
+    "column": 3,
+    "name": "Gas Mine",
+    "obtained": true,
+    "blue_fraction": 0.458
+  },
+  {
+    "slot": 64,
+    "row": 7,
+    "column": 4,
+    "name": "Yellow Light Stick",
+    "obtained": true,
+    "blue_fraction": 0.608
+  },
+  {
+    "slot": 65,
+    "row": 7,
+    "column": 5,
+    "name": "Looting Mk. 3 (Safekeeper)",
+    "obtained": true,
+    "blue_fraction": 0.411
+  },
+  {
+    "slot": 66,
+    "row": 7,
+    "column": 6,
+    "name": "Surge Coil",
+    "obtained": true,
+    "blue_fraction": 0.633
+  },
+  {
+    "slot": 67,
+    "row": 7,
+    "column": 7,
+    "name": "Complex Gun Parts",
+    "obtained": true,
+    "blue_fraction": 0.455
+  },
+  {
+    "slot": 68,
+    "row": 7,
+    "column": 8,
+    "name": "Explosive Mine",
+    "obtained": true,
+    "blue_fraction": 0.526
+  },
+  {
+    "slot": 69,
+    "row": 7,
+    "column": 9,
+    "name": "Venator",
+    "obtained": true,
+    "blue_fraction": 0.606
+  },
+  {
+    "slot": 70,
+    "row": 7,
+    "column": 10,
+    "name": "Stable Stock II",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 71,
+    "row": 8,
+    "column": 1,
+    "name": "Blaze Grenade",
+    "obtained": true,
+    "blue_fraction": 0.633
+  },
+  {
+    "slot": 72,
+    "row": 8,
+    "column": 2,
+    "name": "Trigger 'Nade",
+    "obtained": true,
+    "blue_fraction": 0.449
+  },
+  {
+    "slot": 73,
+    "row": 8,
+    "column": 3,
+    "name": "Seeker Grenade",
+    "obtained": true,
+    "blue_fraction": 0.572
+  },
+  {
+    "slot": 74,
+    "row": 8,
+    "column": 4,
+    "name": "Silencer I",
+    "obtained": true,
+    "blue_fraction": 0.615
+  },
+  {
+    "slot": 75,
+    "row": 8,
+    "column": 5,
+    "name": "Shotgun Choke III",
+    "obtained": false,
+    "blue_fraction": 0.0
+  },
+  {
+    "slot": 76,
+    "row": 8,
+    "column": 6,
+    "name": "Blue Light Stick",
+    "obtained": true,
+    "blue_fraction": 0.642
+  },
+  {
+    "slot": 77,
+    "row": 8,
+    "column": 7,
+    "name": "Vertical Grip II",
+    "obtained": true,
+    "blue_fraction": 0.664
+  },
+  {
+    "slot": 78,
+    "row": 8,
+    "column": 8,
+    "name": "Extended Barrel II",
+    "obtained": true,
+    "blue_fraction": 0.674
+  },
+  {
+    "slot": 79,
+    "row": 8,
+    "column": 9,
+    "name": "Muzzle Brake II",
+    "obtained": true,
+    "blue_fraction": 0.661
+  },
+  {
+    "slot": 80,
+    "row": 8,
+    "column": 10,
+    "name": "Extended Barrel III",
+    "obtained": true,
+    "blue_fraction": 0.672
+  },
+  {
+    "slot": 81,
+    "row": 9,
+    "column": 1,
+    "name": "Burletta",
+    "obtained": true,
+    "blue_fraction": 0.638
+  },
+  {
+    "slot": 82,
+    "row": 9,
+    "column": 2,
+    "name": "Equalizer",
+    "obtained": true,
+    "blue_fraction": 0.66
+  },
+  {
+    "slot": 83,
+    "row": 9,
+    "column": 3,
+    "name": "Snap Hook",
+    "obtained": true,
+    "blue_fraction": 0.582
+  }
+]
