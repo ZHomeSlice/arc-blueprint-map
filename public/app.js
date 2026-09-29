@@ -45,6 +45,8 @@ let cachedBaseUrl = '';
 let selectedSightingId = null;
 let alertSightingId = null;
 let floatingWindow = null;
+let nativeOverlayOpen = false;
+let overlayRevision = 0;
 const alertLifecycle = new AlertLifecycle(() => renderAlertShell());
 const unidentifiedBlueprint = 'Unidentified blueprint';
 const suppliedFinds = [
@@ -330,10 +332,23 @@ function desktopAlert(title, body, blueprintImage) {
 }
 
 function updateFloatingButton() {
-  const supported = Boolean(window.documentPictureInPicture?.requestWindow);
+  const supported = Boolean(window.documentPictureInPicture?.requestWindow) || /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
   ui.floatingAlerts.disabled = !supported;
   ui.floatingAlerts.textContent = !supported ? 'Floating alert unavailable in this browser'
-    : floatingWindow && !floatingWindow.closed ? 'Close floating game alert' : 'Open floating game alert';
+    : nativeOverlayOpen || (floatingWindow && !floatingWindow.closed) ? 'Close floating game alert' : 'Open floating game alert';
+}
+
+function syncNativeOverlay(expanded) {
+  if (!nativeOverlayOpen) return;
+  const payload = { revision: ++overlayRevision, expanded,
+    bar: expanded ? ui.alertState.textContent : mediaStream ? 'Scanning for blueprints' : 'Capture stopped',
+    name: expanded ? ui.alertName.textContent : '',
+    message: expanded ? ui.alertMessage.textContent : '',
+    detail: expanded ? ui.alertDetail.textContent : '',
+    image: expanded ? ui.alertBlueprint.src : '',
+    mapImage: expanded && !ui.alertMapPreview.hidden ? ui.alertMapImage.src : '' };
+  fetch('/api/overlay/state', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload) }).catch(() => { nativeOverlayOpen = false; updateFloatingButton(); });
 }
 
 function renderAlertShell() {
@@ -341,7 +356,8 @@ function renderAlertShell() {
   const expanded = Boolean(sighting && alertLifecycle.isActive(sighting.id));
   ui.alert.classList.toggle('expanded', expanded);
   ui.alert.hidden = !mediaStream && !expanded;
-  ui.alertBar.textContent = expanded ? 'Blueprint spotted' : mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
+  ui.alertBar.textContent = expanded ? ui.alertState.textContent : mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
+  syncNativeOverlay(expanded);
   renderFloatingAlert(expanded ? sighting : null);
 }
 
@@ -422,7 +438,7 @@ async function mapPreview(sighting) {
     context.beginPath(); context.arc(x, y, 9, 0, 2 * Math.PI); context.fill(); context.stroke();
     ui.alertMapImage.src = preview.toDataURL('image/jpeg', 0.82);
     ui.alertMapPreview.hidden = false;
-    renderFloatingAlert(sighting);
+    renderAlertShell();
   } catch { ui.alertMapPreview.hidden = true; }
 }
 
@@ -759,6 +775,23 @@ ui.mapImage.addEventListener('change', async () => {
 ui.start.addEventListener('click', startCapture);
 ui.stop.addEventListener('click', () => stopCapture());
 ui.floatingAlerts.addEventListener('click', async () => {
+  if (/^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '') && !window.__forceBrowserAlert) {
+    try {
+      const status = await (await fetch('/api/overlay/status')).json();
+      if (status.open) {
+        await fetch('/api/overlay/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        nativeOverlayOpen = false;
+      } else {
+        const response = await fetch('/api/overlay/open', { method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        if (!response.ok) throw new Error('Windows overlay unavailable');
+        nativeOverlayOpen = true;
+      }
+      updateFloatingButton();
+      renderAlertShell();
+      return;
+    } catch { /* Use the browser alert when the Windows helper is unavailable. */ }
+  }
   if (floatingWindow && !floatingWindow.closed) { floatingWindow.close(); return; }
   try {
     const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
@@ -933,6 +966,15 @@ ui.presetMap.value = presetForMap(data.maps[currentMap])?.id || 'stella-upper';
 updateAlertPermission();
 updateFloatingButton();
 render();
+if (/^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '')) {
+  Promise.all(['/api/overlay/status', '/api/overlay/state'].map(url => fetch(url).then(response => response.json())))
+    .then(([status, state]) => {
+    overlayRevision = state.revision || 0;
+    nativeOverlayOpen = Boolean(status.open);
+    updateFloatingButton();
+    if (nativeOverlayOpen) renderAlertShell();
+  }).catch(() => {});
+}
 
 // Resolve the newest stored sighting after a reload as well as new live tiles.
 // This lets an interrupted capture finish naming a previously located item.

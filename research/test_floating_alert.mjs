@@ -15,6 +15,7 @@ try {
   await page.route('**/vendor/tesseract.min.js', route => route.fulfill({ status: 200, contentType: 'text/javascript',
     body: 'window.Tesseract={createWorker:async()=>({recognize:async image=>image.width===960&&image.height===150?{data:{text:"STELLA MONTIS"}}:new Promise(()=>{})})};' }));
   await page.addInitScript(() => {
+    window.__forceBrowserAlert = true;
     navigator.mediaDevices.getDisplayMedia = async () => {
       const canvas = document.createElement('canvas'); canvas.width = 1600; canvas.height = 900;
       window.testSetFrame = async file => {
