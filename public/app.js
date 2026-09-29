@@ -361,16 +361,30 @@ function syncPipVisibility(expanded) {
   const targetWindow = floatingWindow;
   pipVisible = expanded;
   const bounds = { left: targetWindow.screenX, top: targetWindow.screenY,
-    width: targetWindow.outerWidth, height: targetWindow.outerHeight };
+    width: targetWindow.outerWidth, height: targetWindow.outerHeight,
+    viewportHeight: targetWindow.innerHeight, targetViewportHeight: expanded ? 330 : 88 };
   fetch('/api/overlay/pip-visibility', { method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ visible: expanded, ...bounds }) })
-    .then(response => { if (!response.ok) throw new Error('Picture-in-Picture visibility control failed'); })
+    .then(async response => {
+      if (!response.ok) throw new Error('Picture-in-Picture visibility control failed');
+      const result = await response.json();
+      if (!result.queued) return;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+        const status = await (await fetch('/api/overlay/pip-companion-status')).json();
+        if (status.result.revision >= result.revision) {
+          if (!status.result.success) throw new Error(status.result.error || 'Desktop alert helper failed');
+          return;
+        }
+      }
+      throw new Error('Desktop alert helper did not respond');
+    })
     .catch(() => {
       if (floatingWindow !== targetWindow) return;
       pipAutoHide = false;
       pipVisible = null;
-      setStatus('Could not hide the browser alert automatically. Use its Collapse button to keep it compact.', Boolean(mediaStream));
+      setStatus('Desktop alert helper could not control the floating window. Run Start-Blueprint-Map.ps1 in Windows PowerShell, then close and reopen the alert.', Boolean(mediaStream));
     });
 }
 
@@ -800,7 +814,7 @@ ui.floatingAlerts.addEventListener('click', async () => {
     try {
       // Request the browser's always-on-top window during the button's user gesture.
       const autoHide = /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
-      const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: autoHide ? 330 : 88,
+      const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
         disallowReturnToOpener: true, preferInitialWindowPlacement: true });
       floatingWindow = opened;
       pipAutoHide = autoHide;

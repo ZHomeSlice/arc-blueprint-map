@@ -57,12 +57,22 @@ try {
     return { left: pip.screenX, top: pip.screenY, width: pip.outerWidth, height: pip.outerHeight };
   });
   await waitVisible(bounds, false);
-  assert.ok(bounds.height >= 300, 'PiP should be full size before a discovery');
+  assert.ok(bounds.height < 200, 'PiP should be compact before a discovery');
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.waitForFunction(() => document.querySelector('#discovery-alert')?.classList.contains('expanded'));
-  await waitVisible(bounds, true);
+  await page.waitForFunction(() => documentPictureInPicture.window?.innerHeight >= 250);
+  const expandedBounds = await page.evaluate(() => {
+    const pip = documentPictureInPicture.window;
+    return { left: pip.screenX, top: pip.screenY, width: pip.outerWidth, height: pip.outerHeight };
+  });
+  await waitVisible(expandedBounds, true);
   await page.waitForFunction(() => !document.querySelector('#discovery-alert')?.classList.contains('expanded'), null, { timeout: 18_000 });
-  await waitVisible(bounds, false);
+  await page.waitForFunction(() => documentPictureInPicture.window?.innerHeight < 150);
+  const hiddenBounds = await page.evaluate(() => {
+    const pip = documentPictureInPicture.window;
+    return { left: pip.screenX, top: pip.screenY, width: pip.outerWidth, height: pip.outerHeight };
+  });
+  await waitVisible(hiddenBounds, false);
   assert.equal(await page.evaluate(() => Boolean(documentPictureInPicture.window && !documentPictureInPicture.window.closed)), true);
   console.log('Real Chrome PiP stayed open, showed the blueprint, then hid after the map timer.');
 } finally { await browser.close(); }

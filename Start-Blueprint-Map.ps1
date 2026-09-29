@@ -27,4 +27,7 @@ if (-not $running) {
     if (-not $running) { throw 'The local app did not start. Run node server.mjs to see the error.' }
 }
 
+$companion = Join-Path $PSScriptRoot 'Windows-Pip-Companion.ps1'
+Start-Process -FilePath 'powershell.exe' -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$companion`" -Port 4177" `
+    -WorkingDirectory $PSScriptRoot -WindowStyle Hidden | Out-Null
 Start-Process $url

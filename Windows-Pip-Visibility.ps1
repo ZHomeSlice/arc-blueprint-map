@@ -3,7 +3,9 @@ param(
     [int]$Left,
     [int]$Top,
     [int]$Width,
-    [int]$Height
+    [int]$Height,
+    [int]$ViewportHeight,
+    [int]$TargetViewportHeight
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,12 +29,12 @@ public static class BlueprintPipWindow {
 }
 '@
 
-$script:target = [IntPtr]::Zero
+$script:targets = New-Object System.Collections.Generic.List[System.IntPtr]
 $callback = [BlueprintPipWindow+EnumProc]{
     param($handle, $parameter)
     $title = New-Object System.Text.StringBuilder 260
     [void][BlueprintPipWindow]::GetWindowText($handle, $title, $title.Capacity)
-    if ($title.ToString() -notin @('ARC Blueprint Map', 'ARC Blueprint Alert')) { return $true }
+    if ($title.ToString() -notmatch 'ARC Blueprint Map|ARC Blueprint Alert|127\.0\.0\.1:4177') { return $true }
     $class = New-Object System.Text.StringBuilder 260
     [void][BlueprintPipWindow]::GetClassName($handle, $class, $class.Capacity)
     if ($class.ToString() -ne 'Chrome_WidgetWin_1') { return $true }
@@ -40,41 +42,52 @@ $callback = [BlueprintPipWindow+EnumProc]{
     [void][BlueprintPipWindow]::GetWindowThreadProcessId($handle, [ref]$processId)
     try { $processName = (Get-Process -Id $processId -ErrorAction Stop).ProcessName }
     catch { return $true }
-    if ($processName -notin @('chrome', 'msedge')) { return $true }
+    if ($processName -notin @('chrome', 'msedge', 'msedgewebview2', 'codex')) { return $true }
     $rect = New-Object BlueprintPipWindow+Rect
     if (-not [BlueprintPipWindow]::GetWindowRect($handle, [ref]$rect)) { return $true }
     if ([Math]::Abs($rect.Left - $Left) -gt 35 -or [Math]::Abs($rect.Top - $Top) -gt 35 -or
         [Math]::Abs(($rect.Right - $rect.Left) - $Width) -gt 35 -or
         [Math]::Abs(($rect.Bottom - $rect.Top) - $Height) -gt 35) { return $true }
-    if (([BlueprintPipWindow]::GetWindowLong($handle, -20) -band 0x8) -eq 0) { return $true }
-    $script:target = $handle
-    return $false
+    $script:targets.Add($handle)
+    return $true
 }
 $attempt = 0
-while ($script:target -eq [IntPtr]::Zero -and $attempt -lt 5) {
+while ($script:targets.Count -eq 0 -and $attempt -lt 5) {
     [void][BlueprintPipWindow]::EnumWindows($callback, [IntPtr]::Zero)
     $attempt++
-    if ($script:target -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 150 }
+    if ($script:targets.Count -eq 0) { Start-Sleep -Milliseconds 150 }
 }
-if ($script:target -eq [IntPtr]::Zero) { throw 'Matching browser Picture-in-Picture window not found' }
+if ($script:targets.Count -ne 1) { throw "Expected one matching Picture-in-Picture window, found $($script:targets.Count)" }
+$target = $script:targets[0]
 
 if ($Action -eq 'Status') {
-    Write-Output ([BlueprintPipWindow]::IsWindowVisible($script:target))
+    Write-Output ([BlueprintPipWindow]::IsWindowVisible($target))
     exit 0
 }
 
+$rect = New-Object BlueprintPipWindow+Rect
+[void][BlueprintPipWindow]::GetWindowRect($target, [ref]$rect)
+$targetHeight = $rect.Bottom - $rect.Top
+if ($ViewportHeight -gt 0 -and $TargetViewportHeight -gt 0) {
+    $targetHeight += $TargetViewportHeight - $ViewportHeight
+    if ($targetHeight -lt 90 -or $targetHeight -gt 950) { throw 'Invalid resized Picture-in-Picture height' }
+}
+$targetTop = $rect.Bottom - $targetHeight
 if ($Action -eq 'Hide') {
-    [void][BlueprintPipWindow]::ShowWindowAsync($script:target, 0)
+    [void][BlueprintPipWindow]::ShowWindowAsync($target, 0)
+    [void][BlueprintPipWindow]::SetWindowPos($target, [IntPtr](-1), $rect.Left, $targetTop,
+        ($rect.Right - $rect.Left), $targetHeight, 0x0010)
 } else {
-    [void][BlueprintPipWindow]::ShowWindowAsync($script:target, 8)
-    # Restore the existing browser window above the game without taking keyboard focus.
-    [void][BlueprintPipWindow]::SetWindowPos($script:target, [IntPtr](-1), 0, 0, 0, 0, 0x0013)
+    # Grow upward and restore the browser window without taking game focus.
+    [void][BlueprintPipWindow]::SetWindowPos($target, [IntPtr](-1), $rect.Left, $targetTop,
+        ($rect.Right - $rect.Left), $targetHeight, 0x0010)
+    [void][BlueprintPipWindow]::ShowWindowAsync($target, 8)
 }
 for ($attempt = 0; $attempt -lt 5; $attempt++) {
-    if ([BlueprintPipWindow]::IsWindowVisible($script:target) -eq ($Action -eq 'Show')) { break }
+    if ([BlueprintPipWindow]::IsWindowVisible($target) -eq ($Action -eq 'Show')) { break }
     Start-Sleep -Milliseconds 100
 }
-if ([BlueprintPipWindow]::IsWindowVisible($script:target) -ne ($Action -eq 'Show')) {
+if ([BlueprintPipWindow]::IsWindowVisible($target) -ne ($Action -eq 'Show')) {
     throw "Could not $Action browser Picture-in-Picture window"
 }
 Write-Output "$Action browser Picture-in-Picture window"

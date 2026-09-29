@@ -35,10 +35,14 @@ try {
     const pipDocument = document.implementation.createHTMLDocument('ARC Blueprint Alert');
     const listeners = new Map();
     window.testPiP = {
-      document: pipDocument, closed: false, innerHeight: 330,
-      outerWidth: 406, outerHeight: 373, screenX: 2626, screenY: 1300,
+      document: pipDocument, closed: false, innerHeight: 88,
+      outerWidth: 406, outerHeight: 131, screenX: 2626, screenY: 1542,
       addEventListener(type, listener) { listeners.set(type, listener); },
-      resizeTo(width, height) { this.innerHeight = height; listeners.get('resize')?.(); },
+      resizeTo(width, height) {
+        const change = height - this.innerHeight;
+        this.innerHeight = height; this.outerHeight += change; this.screenY -= change;
+        listeners.get('resize')?.();
+      },
       close() { this.closed = true; listeners.get('pagehide')?.(); },
     };
     Object.defineProperty(window, 'documentPictureInPicture', {
@@ -68,10 +72,12 @@ try {
   await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints');
   await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
   await page.waitForFunction(() => window.testPiP.document.querySelector('.floating-card')?.classList.contains('expanded'));
-  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('compact')), false);
-  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent), 'Blueprint spotted');
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('compact')), true);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent.includes('Blueprint spotted')), true);
   assert.ok((await page.evaluate(() => window.testPiP.document.querySelector('#floating-bar-icon').src)).startsWith('data:image/jpeg'));
   assert.equal(visibilityCalls.at(-1)?.visible, true);
+  assert.equal(visibilityCalls.at(-1)?.targetViewportHeight, 330);
+  await page.evaluate(() => window.testPiP.resizeTo(390, 330));
   assert.equal(await page.evaluate(() => window.testPiP.innerHeight), 330);
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-message').textContent), 'Press M and keep the in-game map open.');
   await page.evaluate(() => window.testSetFrame('/test-floating-map.jpg'));
@@ -82,5 +88,6 @@ try {
   await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints', null, { timeout: 13_000 });
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('expanded')), false);
   assert.equal(visibilityCalls.at(-1)?.visible, false);
+  assert.equal(visibilityCalls.at(-1)?.targetViewportHeight, 88);
   console.log('Floating alert hid 10 seconds after location capture.');
 } finally { await browser.close(); }
