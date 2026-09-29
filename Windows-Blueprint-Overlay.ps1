@@ -7,6 +7,19 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class BlueprintOverlayWindow {
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr handle, IntPtr after, int x, int y, int width, int height, uint flags);
+    public static bool KeepAboveOtherWindows(IntPtr handle) {
+        // Keep the bar above other topmost windows without taking game focus.
+        const uint noSize = 0x0001, noMove = 0x0002, noActivate = 0x0010;
+        return SetWindowPos(handle, new IntPtr(-1), 0, 0, 0, 0, noSize | noMove | noActivate);
+    }
+}
+'@
 if ($Validate) { Write-Output 'Windows Forms available'; exit 0 }
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
@@ -155,9 +168,20 @@ foreach ($control in @($bar, $barText, $dot)) {
 
 $script:lastRevision = -1
 $script:failures = 0
+$script:topmostTicks = 0
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 250
 $timer.Add_Tick({
+    $script:topmostTicks++
+    if ($script:topmostTicks % 4 -eq 0) {
+        [void][BlueprintOverlayWindow]::KeepAboveOtherWindows($script:form.Handle)
+        $visibleArea = [System.Windows.Forms.Screen]::AllScreens | Where-Object { $_.WorkingArea.IntersectsWith($script:form.Bounds) }
+        if (-not $visibleArea) {
+            $area = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
+            $script:form.Location = New-Object System.Drawing.Point(($area.Right - $script:form.Width - 20),
+                ($area.Bottom - $script:form.Height - 20))
+        }
+    }
     try {
         $state = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/api/overlay/state" -TimeoutSec 1
         $script:failures = 0
