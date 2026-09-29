@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">How ARC Blueprint Map works</title>
+  <desc id="desc">Six-step infographic: share the game window, spot a blueprint in a loot container, identify its name, open the in-game map, locate the player, and confirm or save the pin. Processing and storage stay in the browser.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1"><stop stop-color="#101b19"/><stop offset="1" stop-color="#192b26"/></linearGradient>
+    <linearGradient id="card" x2="0" y2="1"><stop stop-color="#22352e"/><stop offset="1" stop-color="#1c2c26"/></linearGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="#7b9b83" stroke-opacity=".085"/></pattern>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#050b08" flood-opacity=".35"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M1 1L9 5 1 9" fill="none" stroke="#dcbb76" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:Inter,'Segoe UI',Arial,sans-serif}
+      .eyebrow{fill:#e7ba72;font-size:18px;font-weight:800;letter-spacing:4px}
+      .title{fill:#f4f1e7;font-size:65px;font-weight:800;letter-spacing:-2px}
+      .subtitle{fill:#b7c9bd;font-size:23px}
+      .step{fill:#f5d28a;font-size:18px;font-weight:800;letter-spacing:2px}
+      .heading{fill:#f5f1e8;font-size:31px;font-weight:750}
+      .body{fill:#c1d0c5;font-size:23px}
+      .small{fill:#a7bdaf;font-size:19px}
+      .footer-title{fill:#efd196;font-size:21px;font-weight:800;letter-spacing:1px}
+      .footer{fill:#d0ddd2;font-size:20px}
+      .icon{fill:none;stroke:#d9e9dc;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#background)"/>
+  <rect width="1600" height="1050" fill="url(#grid)"/>
+  <path d="M0 0H1600V9H0Z" fill="#d8ad68"/>
+  <path d="M70 207H1530" stroke="#728c78" stroke-opacity=".5" stroke-width="2"/>
+  <text x="70" y="73" class="eyebrow">PRIVATE LOCAL TRACKER  /  ARC RAIDERS</text>
+  <text x="70" y="144" class="title">How Blueprint Map works</text>
+  <text x="72" y="186" class="subtitle">From a loot container to a pin on the right map and floor</text>
+
+  <!-- The gold route shows the order in which the game and tracker interact. -->
+  <g fill="none" stroke="#d8b670" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)">
+    <path d="M534 381H557"/>
+    <path d="M1034 381H1057"/>
+    <path d="M1300 524V557"/>
+    <path d="M1066 713H1043"/>
+    <path d="M566 713H543"/>
+  </g>
+
+  <!-- Step 1 -->
+  <g filter="url(#shadow)"><rect x="70" y="238" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="119" cy="290" r="30" fill="#d8b670"/>
+  <text x="119" y="299" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">1</text>
+  <text x="167" y="281" class="step">START</text>
+  <text x="167" y="318" class="heading">Share the game</text>
+  <path class="icon" d="M120 365h112v75H120z M155 454h42 M176 440v14 M142 382h45 M196 382h15"/>
+  <text x="254" y="376" class="body">Select Start capture in</text>
+  <text x="254" y="409" class="body">Chrome or Edge, then</text>
+  <text x="254" y="442" class="body">share ARC Raiders.</text>
+  <text x="120" y="488" class="small">Window or Entire Screen works.</text>
+
+  <!-- Step 2 -->
+  <g filter="url(#shadow)"><rect x="570" y="238" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="619" cy="290" r="30" fill="#d8b670"/>
+  <text x="619" y="299" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">2</text>
+  <text x="667" y="281" class="step">IN GAME</text>
+  <text x="667" y="318" class="heading">Open a container</text>
+  <rect x="619" y="355" width="110" height="89" rx="8" fill="#14364e" stroke="#77b9df" stroke-width="4"/>
+  <path d="M632 373h84M632 392h84M632 411h84M651 366v68M677 366v68M703 366v68" stroke="#5f9ec3" stroke-width="2" opacity=".75"/>
+  <path d="M653 416q12-7 24 0 12-7 24 0v15q-12-7-24 0-12-7-24 0z" fill="#f2f5ed"/>
+  <text x="752" y="376" class="body">Press E. The scanner</text>
+  <text x="752" y="409" class="body">spots the blue tile and</text>
+  <text x="752" y="442" class="body">white blueprint icon.</text>
+  <text x="620" y="488" class="small">A sighting is logged immediately.</text>
+
+  <!-- Step 3 -->
+  <g filter="url(#shadow)"><rect x="1070" y="238" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="1119" cy="290" r="30" fill="#d8b670"/>
+  <text x="1119" y="299" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">3</text>
+  <text x="1167" y="281" class="step">RECOGNIZE</text>
+  <text x="1167" y="318" class="heading">Name the blueprint</text>
+  <path class="icon" d="M1120 372h99v70h-99z M1134 386h47 M1134 402h62 M1134 418h37 M1111 364v-11h14 M1226 364v-11h-14 M1111 448v11h14 M1226 448v11h-14"/>
+  <text x="1245" y="376" class="body">Hover for OCR, or</text>
+  <text x="1245" y="409" class="body">match its icon to</text>
+  <text x="1245" y="442" class="body">the local catalog.</text>
+  <text x="1120" y="488" class="small">Weak matches wait for your choice.</text>
+
+  <!-- Step 4, starting the second row on the right -->
+  <g filter="url(#shadow)"><rect x="1070" y="570" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="1119" cy="622" r="30" fill="#d8b670"/>
+  <text x="1119" y="631" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">4</text>
+  <text x="1167" y="613" class="step">IN GAME</text>
+  <text x="1167" y="650" class="heading">Open your map</text>
+  <path class="icon" d="M1120 692l34-14 34 14 34-14v84l-34 14-34-14-34 14z M1154 678v84 M1188 692v84"/>
+  <path d="M1192 706l-11 31 12-7 10 8z" fill="#5dc5eb" stroke="#c7effb" stroke-width="2"/>
+  <text x="1245" y="710" class="body">Press M soon after</text>
+  <text x="1245" y="743" class="body">looting. Keep the map</text>
+  <text x="1245" y="776" class="body">open for matching.</text>
+  <text x="1120" y="822" class="small">Title + image select floor; arrow locates you.</text>
+
+  <!-- Step 5 -->
+  <g filter="url(#shadow)"><rect x="570" y="570" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="619" cy="622" r="30" fill="#d8b670"/>
+  <text x="619" y="631" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">5</text>
+  <text x="667" y="613" class="step">LOCATE</text>
+  <text x="667" y="650" class="heading">See a provisional pin</text>
+  <path class="icon" d="M619 694h104v74H619z M636 710h69 M636 726h46 M636 742h57"/>
+  <path d="M671 693c-17 0-29 13-29 29 0 20 29 47 29 47s29-27 29-47c0-16-12-29-29-29z" fill="#55b7e7" stroke="#d7f4ff" stroke-width="4"/>
+  <circle cx="671" cy="721" r="8" fill="#e3f6ff"/>
+  <text x="748" y="710" class="body">The tracker switches</text>
+  <text x="748" y="743" class="body">to the matching map</text>
+  <text x="748" y="776" class="body">and marks your spot.</text>
+  <text x="620" y="822" class="small">Uncertain map matches stay unpinned.</text>
+
+  <!-- Step 6 -->
+  <g filter="url(#shadow)"><rect x="70" y="570" width="460" height="286" rx="22" fill="url(#card)" stroke="#526f5c" stroke-width="2"/></g>
+  <circle cx="119" cy="622" r="30" fill="#d8b670"/>
+  <text x="119" y="631" text-anchor="middle" fill="#1b281f" font-size="28" font-weight="850">6</text>
+  <text x="167" y="613" class="step">KEEP THE FIND</text>
+  <text x="167" y="650" class="heading">Confirm or save</text>
+  <circle cx="174" cy="729" r="48" fill="#326648" stroke="#a5dfa8" stroke-width="4"/>
+  <path d="M151 728l16 16 31-33" class="icon" stroke-width="7"/>
+  <text x="247" y="710" class="body">Strong names save</text>
+  <text x="247" y="743" class="body">automatically. Review</text>
+  <text x="247" y="776" class="body">others and save a pin.</text>
+  <text x="120" y="822" class="small">Correct the name or location anytime.</text>
+
+  <rect x="70" y="899" width="1460" height="110" rx="18" fill="#101c18" stroke="#4c6553" stroke-width="2"/>
+  <path d="M800 919v70" stroke="#42604d" stroke-width="2"/>
+  <circle cx="118" cy="954" r="24" fill="#d8b670"/>
+  <path d="M106 954l9 9 17-19" fill="none" stroke="#17231b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="158" y="947" class="footer-title">LOCAL BY DESIGN</text>
+  <text x="158" y="978" class="footer">Frames and finds stay in your browser. Export JSON for backup.</text>
+  <circle cx="850" cy="954" r="24" fill="#4c9ac3"/>
+  <text x="850" y="964" text-anchor="middle" fill="#12252c" font-size="28" font-weight="800">?</text>
+  <text x="890" y="947" class="footer-title">WHEN A MATCH IS UNCERTAIN</text>
+  <text x="890" y="978" class="footer">Review the sighting, choose an icon, or place the pin yourself.</text>
+  <text x="1530" y="1033" text-anchor="end" fill="#809d88" font-size="16">ARC Blueprint Map · local prototype</text>
+</svg>

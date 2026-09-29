@@ -1,0 +1,583 @@
+[
+  {
+    "slot": 1,
+    "row": 1,
+    "column": 1,
+    "name": "Extended Shotgun Mag III",
+    "icon": "/catalog-icons/extended-shotgun-mag-iii-recipe.webp"
+  },
+  {
+    "slot": 2,
+    "row": 1,
+    "column": 2,
+    "name": "Angled Grip III",
+    "icon": "/catalog-icons/angled-grip-iii-recipe.webp"
+  },
+  {
+    "slot": 3,
+    "row": 1,
+    "column": 3,
+    "name": "Pulse Mine",
+    "icon": "/catalog-icons/pulse-mine-blueprint.webp"
+  },
+  {
+    "slot": 4,
+    "row": 1,
+    "column": 4,
+    "name": "Silencer II",
+    "icon": "/catalog-icons/silencer-ii-recipe.webp"
+  },
+  {
+    "slot": 5,
+    "row": 1,
+    "column": 5,
+    "name": "Red Light Stick",
+    "icon": "/catalog-icons/red-light-stick-blueprint.webp"
+  },
+  {
+    "slot": 6,
+    "row": 1,
+    "column": 6,
+    "name": "Tactical Mk. 3 (Revival)",
+    "icon": "/catalog-icons/tactical-mk-3-revival-blueprint.webp"
+  },
+  {
+    "slot": 7,
+    "row": 1,
+    "column": 7,
+    "name": "Compensator II",
+    "icon": "/catalog-icons/compensator-ii-recipe.webp"
+  },
+  {
+    "slot": 8,
+    "row": 1,
+    "column": 8,
+    "name": "Muzzle Brake III",
+    "icon": "/catalog-icons/muzzle-brake-iii-recipe.webp"
+  },
+  {
+    "slot": 9,
+    "row": 1,
+    "column": 9,
+    "name": "Tactical Mk. 3 (Defensive)",
+    "icon": "/catalog-icons/tactical-mk3-defensive-blueprint.webp"
+  },
+  {
+    "slot": 10,
+    "row": 1,
+    "column": 10,
+    "name": "Vita Spray",
+    "icon": "/catalog-icons/vita-spray-recipe.webp"
+  },
+  {
+    "slot": 11,
+    "row": 2,
+    "column": 1,
+    "name": "Medium Gun Parts",
+    "icon": "/catalog-icons/medium-gun-parts-recipe.webp"
+  },
+  {
+    "slot": 12,
+    "row": 2,
+    "column": 2,
+    "name": "Tagging Grenade",
+    "icon": "/catalog-icons/tagging-grenade-recipe.webp"
+  },
+  {
+    "slot": 13,
+    "row": 2,
+    "column": 3,
+    "name": "Crash Mat",
+    "icon": "/catalog-icons/crash-mat-blueprint.webp"
+  },
+  {
+    "slot": 14,
+    "row": 2,
+    "column": 4,
+    "name": "Bobcat",
+    "icon": "/catalog-icons/bobcat-i-recipe.webp"
+  },
+  {
+    "slot": 15,
+    "row": 2,
+    "column": 5,
+    "name": "Defibrillator",
+    "icon": "/catalog-icons/defibrillator-recipe.webp"
+  },
+  {
+    "slot": 16,
+    "row": 2,
+    "column": 6,
+    "name": "Jupiter",
+    "icon": "/catalog-icons/jupiter-i-recipe.webp"
+  },
+  {
+    "slot": 17,
+    "row": 2,
+    "column": 7,
+    "name": "Extended Medium Mag II",
+    "icon": "/catalog-icons/extended-medium-mag-ii-recipe.webp"
+  },
+  {
+    "slot": 18,
+    "row": 2,
+    "column": 8,
+    "name": "Tactical Mk. 3 (Smoke)",
+    "icon": "/catalog-icons/utility-augment-t3-smoke-blueprint.webp"
+  },
+  {
+    "slot": 19,
+    "row": 2,
+    "column": 9,
+    "name": "Smoke Grenade",
+    "icon": "/catalog-icons/smoke-grenade-blueprint.webp"
+  },
+  {
+    "slot": 20,
+    "row": 2,
+    "column": 10,
+    "name": "Dolabra",
+    "icon": "/catalog-icons/dolabra-blueprint.webp"
+  },
+  {
+    "slot": 21,
+    "row": 3,
+    "column": 1,
+    "name": "Shotgun Silencer",
+    "icon": "/catalog-icons/shotgun-silencer-blueprint.webp"
+  },
+  {
+    "slot": 22,
+    "row": 3,
+    "column": 2,
+    "name": "White Flag",
+    "icon": "/catalog-icons/white-flag-blueprint.webp"
+  },
+  {
+    "slot": 23,
+    "row": 3,
+    "column": 3,
+    "name": "Extended Light Mag II",
+    "icon": "/catalog-icons/extended-light-mag-ii-recipe.webp"
+  },
+  {
+    "slot": 24,
+    "row": 3,
+    "column": 4,
+    "name": "Showstopper",
+    "icon": "/catalog-icons/showstopper-blueprint.webp"
+  },
+  {
+    "slot": 25,
+    "row": 3,
+    "column": 5,
+    "name": "Remote Raider Flare",
+    "icon": "/catalog-icons/remote-raider-flare-blueprint.webp"
+  },
+  {
+    "slot": 26,
+    "row": 3,
+    "column": 6,
+    "name": "Angled Grip II",
+    "icon": "/catalog-icons/angled-grip-ii-recipe.webp"
+  },
+  {
+    "slot": 27,
+    "row": 3,
+    "column": 7,
+    "name": "Stable Stock III",
+    "icon": "/catalog-icons/stable-stock-iii-recipe.webp"
+  },
+  {
+    "slot": 28,
+    "row": 3,
+    "column": 8,
+    "name": "Aphelion",
+    "icon": "/catalog-icons/aphelion-rifle-blueprint.webp"
+  },
+  {
+    "slot": 29,
+    "row": 3,
+    "column": 9,
+    "name": "Tempest",
+    "icon": "/catalog-icons/tempest-i-recipe.webp"
+  },
+  {
+    "slot": 30,
+    "row": 3,
+    "column": 10,
+    "name": "Tactical Mk. 3 (Healing)",
+    "icon": "/catalog-icons/tacical-mk3-healing-blueprint.webp"
+  },
+  {
+    "slot": 31,
+    "row": 4,
+    "column": 1,
+    "name": "Vertical Grip III",
+    "icon": "/catalog-icons/vertical-grip-iii-recipe.webp"
+  },
+  {
+    "slot": 32,
+    "row": 4,
+    "column": 2,
+    "name": "Wolfpack",
+    "icon": "/catalog-icons/wolfpack-recipe.webp"
+  },
+  {
+    "slot": 33,
+    "row": 4,
+    "column": 3,
+    "name": "Combat Mk. 3 (Flanking)",
+    "icon": "/catalog-icons/combat-mk-3-flanking.webp"
+  },
+  {
+    "slot": 34,
+    "row": 4,
+    "column": 4,
+    "name": "Torrente",
+    "icon": "/catalog-icons/torrent-i-recipe.webp"
+  },
+  {
+    "slot": 35,
+    "row": 4,
+    "column": 5,
+    "name": "Jolt Mine",
+    "icon": "/catalog-icons/jolt-mine-recipe.webp"
+  },
+  {
+    "slot": 36,
+    "row": 4,
+    "column": 6,
+    "name": "Hullcracker",
+    "icon": "/catalog-icons/hullcracker-blueprint.webp"
+  },
+  {
+    "slot": 37,
+    "row": 4,
+    "column": 7,
+    "name": "Vita Shot",
+    "icon": "/catalog-icons/vita-shot-recipe.webp"
+  },
+  {
+    "slot": 38,
+    "row": 4,
+    "column": 8,
+    "name": "Deadline",
+    "icon": "/catalog-icons/deadline-blueprint.webp"
+  },
+  {
+    "slot": 39,
+    "row": 4,
+    "column": 9,
+    "name": "Shotgun Choke II",
+    "icon": "/catalog-icons/shotgun-choke-ii-recipe.webp"
+  },
+  {
+    "slot": 40,
+    "row": 4,
+    "column": 10,
+    "name": "Anvil",
+    "icon": "/catalog-icons/anvil-recipe.webp"
+  },
+  {
+    "slot": 41,
+    "row": 5,
+    "column": 1,
+    "name": "Osprey",
+    "icon": "/catalog-icons/osprey-recipe.webp"
+  },
+  {
+    "slot": 42,
+    "row": 5,
+    "column": 2,
+    "name": "Looting Mk. 3 (Survivor)",
+    "icon": "/catalog-icons/looting-mk-3-survivor-blueprint.webp"
+  },
+  {
+    "slot": 43,
+    "row": 5,
+    "column": 3,
+    "name": "Extended Shotgun Mag II",
+    "icon": "/catalog-icons/extended-shotgun-mag-ii-recipe.webp"
+  },
+  {
+    "slot": 44,
+    "row": 5,
+    "column": 4,
+    "name": "Powered Descender",
+    "icon": "/catalog-icons/powered-descender-blueprint.webp"
+  },
+  {
+    "slot": 45,
+    "row": 5,
+    "column": 5,
+    "name": "Compensator III",
+    "icon": "/catalog-icons/compensator-iii-recipe.webp"
+  },
+  {
+    "slot": 46,
+    "row": 5,
+    "column": 6,
+    "name": "Vulcano",
+    "icon": "/catalog-icons/vulcano-blueprint.webp"
+  },
+  {
+    "slot": 47,
+    "row": 5,
+    "column": 7,
+    "name": "Lightweight Stock",
+    "icon": "/catalog-icons/lightweight-stock-recipe.webp"
+  },
+  {
+    "slot": 48,
+    "row": 5,
+    "column": 8,
+    "name": "Trailblazer",
+    "icon": "/catalog-icons/trailblazer-grenade-blueprint.webp"
+  },
+  {
+    "slot": 49,
+    "row": 5,
+    "column": 9,
+    "name": "Barricade Kit",
+    "icon": "/catalog-icons/barricade-kit-recipe.webp"
+  },
+  {
+    "slot": 50,
+    "row": 5,
+    "column": 10,
+    "name": "Green Light Stick",
+    "icon": "/catalog-icons/green-light-stick-blueprint.webp"
+  },
+  {
+    "slot": 51,
+    "row": 6,
+    "column": 1,
+    "name": "Extended Medium Mag III",
+    "icon": "/catalog-icons/extended-medium-mag-iii-blueprint.webp"
+  },
+  {
+    "slot": 52,
+    "row": 6,
+    "column": 2,
+    "name": "Lure Grenade",
+    "icon": "/catalog-icons/lure-grenade-recipe.webp"
+  },
+  {
+    "slot": 53,
+    "row": 6,
+    "column": 3,
+    "name": "Combat Mk. 3 (Aggressive)",
+    "icon": "/catalog-icons/combat-mk3-aggressive-blueprint.webp"
+  },
+  {
+    "slot": 54,
+    "row": 6,
+    "column": 4,
+    "name": "Light Gun Parts",
+    "icon": "/catalog-icons/light-gun-parts-recipe.webp"
+  },
+  {
+    "slot": 55,
+    "row": 6,
+    "column": 5,
+    "name": "Extended Light Mag III",
+    "icon": "/catalog-icons/extended-light-mag-iii-recipe.webp"
+  },
+  {
+    "slot": 56,
+    "row": 6,
+    "column": 6,
+    "name": "Il Toro",
+    "icon": "/catalog-icons/il-toro-recipe.webp"
+  },
+  {
+    "slot": 57,
+    "row": 6,
+    "column": 7,
+    "name": "Padded Stock",
+    "icon": "/catalog-icons/padded-stock-recipe.webp"
+  },
+  {
+    "slot": 58,
+    "row": 6,
+    "column": 8,
+    "name": "Heavy Gun Parts",
+    "icon": "/catalog-icons/heavy-gun-parts-recipe.webp"
+  },
+  {
+    "slot": 59,
+    "row": 6,
+    "column": 9,
+    "name": "Rascal",
+    "icon": "/catalog-icons/rascal-blueprint.webp"
+  },
+  {
+    "slot": 60,
+    "row": 6,
+    "column": 10,
+    "name": "Canto",
+    "icon": "/catalog-icons/canto-blueprint.webp"
+  },
+  {
+    "slot": 61,
+    "row": 7,
+    "column": 1,
+    "name": "Bettina I",
+    "icon": "/catalog-icons/bettina-blueprint.webp"
+  },
+  {
+    "slot": 62,
+    "row": 7,
+    "column": 2,
+    "name": "Fireworks Box",
+    "icon": "/catalog-icons/fireworks-box-blueprint.webp"
+  },
+  {
+    "slot": 63,
+    "row": 7,
+    "column": 3,
+    "name": "Gas Mine",
+    "icon": "/catalog-icons/gas-mine-blueprint.webp"
+  },
+  {
+    "slot": 64,
+    "row": 7,
+    "column": 4,
+    "name": "Yellow Light Stick",
+    "icon": "/catalog-icons/yellow-light-stick-blueprint.webp"
+  },
+  {
+    "slot": 65,
+    "row": 7,
+    "column": 5,
+    "name": "Looting Mk. 3 (Safekeeper)",
+    "icon": "/catalog-icons/looting-mk-3-safekeeper-blueprint.webp"
+  },
+  {
+    "slot": 66,
+    "row": 7,
+    "column": 6,
+    "name": "Surge Coil",
+    "icon": "/catalog-icons/surge-coil-blueprint.webp"
+  },
+  {
+    "slot": 67,
+    "row": 7,
+    "column": 7,
+    "name": "Complex Gun Parts",
+    "icon": "/catalog-icons/complex-gun-parts-blueprint.webp"
+  },
+  {
+    "slot": 68,
+    "row": 7,
+    "column": 8,
+    "name": "Explosive Mine",
+    "icon": "/catalog-icons/explosive-mine-blueprint.webp"
+  },
+  {
+    "slot": 69,
+    "row": 7,
+    "column": 9,
+    "name": "Venator",
+    "icon": "/catalog-icons/venator-recipe.webp"
+  },
+  {
+    "slot": 70,
+    "row": 7,
+    "column": 10,
+    "name": "Stable Stock II",
+    "icon": "/catalog-icons/stable-stock-ii-recipe.webp"
+  },
+  {
+    "slot": 71,
+    "row": 8,
+    "column": 1,
+    "name": "Blaze Grenade",
+    "icon": "/catalog-icons/blaze-grenade-blueprint.webp"
+  },
+  {
+    "slot": 72,
+    "row": 8,
+    "column": 2,
+    "name": "Trigger 'Nade",
+    "icon": "/catalog-icons/trigger-nade-recipe.webp"
+  },
+  {
+    "slot": 73,
+    "row": 8,
+    "column": 3,
+    "name": "Seeker Grenade",
+    "icon": "/catalog-icons/seeker-grenade-blueprint.webp"
+  },
+  {
+    "slot": 74,
+    "row": 8,
+    "column": 4,
+    "name": "Silencer I",
+    "icon": "/catalog-icons/silencer-i-recipe.webp"
+  },
+  {
+    "slot": 75,
+    "row": 8,
+    "column": 5,
+    "name": "Shotgun Choke III",
+    "icon": "/catalog-icons/shotgun-choke-iii-recipe.webp"
+  },
+  {
+    "slot": 76,
+    "row": 8,
+    "column": 6,
+    "name": "Blue Light Stick",
+    "icon": "/catalog-icons/blue-light-stick-blueprint.webp"
+  },
+  {
+    "slot": 77,
+    "row": 8,
+    "column": 7,
+    "name": "Vertical Grip II",
+    "icon": "/catalog-icons/vertical-grip-ii-recipe.webp"
+  },
+  {
+    "slot": 78,
+    "row": 8,
+    "column": 8,
+    "name": "Extended Barrel II",
+    "icon": "/catalog-icons/extended-barrel-ii-blueprint.webp"
+  },
+  {
+    "slot": 79,
+    "row": 8,
+    "column": 9,
+    "name": "Muzzle Brake II",
+    "icon": "/catalog-icons/muzzle-brake-ii-recipe.webp"
+  },
+  {
+    "slot": 80,
+    "row": 8,
+    "column": 10,
+    "name": "Extended Barrel III",
+    "icon": "/catalog-icons/extended-barrel-recipe.webp"
+  },
+  {
+    "slot": 81,
+    "row": 9,
+    "column": 1,
+    "name": "Burletta",
+    "icon": "/catalog-icons/burltetta-recipe.webp"
+  },
+  {
+    "slot": 82,
+    "row": 9,
+    "column": 2,
+    "name": "Equalizer",
+    "icon": "/catalog-icons/equalizer-recipe.webp"
+  },
+  {
+    "slot": 83,
+    "row": 9,
+    "column": 3,
+    "name": "Snap Hook",
+    "icon": "/catalog-icons/snap-hook-recipe.webp"
+  }
+]
