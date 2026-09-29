@@ -31,15 +31,14 @@ try {
     };
   });
   await page.goto('http://127.0.0.1:4177/');
+  if (await page.locator('#floating-alerts, #discovery-alert').count()) {
+    throw new Error('Floating popup controls are still present');
+  }
   await page.getByRole('button', { name: 'Enable Windows notifications' }).click();
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.waitForFunction(() => document.querySelector('#sighting-count')?.textContent === '1');
-  await page.waitForFunction(() => document.querySelector('#alert-state')?.textContent === 'Blueprint spotted');
-  if (!await page.locator('#alert-blueprint').evaluate(image => image.src.startsWith('data:image/jpeg'))) {
-    throw new Error('Discovery card did not show a captured blueprint image');
-  }
-  if (!await page.locator('#alert-message').textContent().then(text => text.includes('Open your in-game map'))) {
-    throw new Error('Discovery card did not prompt for the in-game map');
+  if (!await page.locator('#selected-blueprint-tile').evaluate(image => image.src.startsWith('data:image/jpeg'))) {
+    throw new Error('Sighting list did not retain the captured blueprint icon');
   }
   if (!await page.evaluate(() => window.testNotifications.some(notification =>
     notification.title.includes('Blueprint spotted') && notification.icon?.startsWith('data:image/jpeg')))) {
@@ -50,14 +49,9 @@ try {
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings[0].name === 'Looting Mk. 3 (Survivor)');
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).finds[0]?.name === 'Looting Mk. 3 (Survivor)');
   if (await page.locator('#pins .pin:not(.sighting-pin)').count() !== 1) throw new Error('Confident icon match did not appear as a saved map pin');
-  await page.waitForFunction(() => ['Location captured', 'Pin saved'].includes(document.querySelector('#alert-state')?.textContent));
-  await page.locator('#alert-map-preview img').waitFor({ state: 'visible' });
   if (!await page.evaluate(() => window.testNotifications.some(notification => notification.title.includes('Location captured')))) {
     throw new Error('Desktop location notification was not sent after opt-in');
   }
-  await page.getByRole('button', { name: 'View saved pin' }).click();
-  if (await page.locator('#discovery-alert').evaluate(card => card.classList.contains('expanded')))
-    throw new Error('Discovery card covered the map during review');
   const result = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('arc-blueprint-map-v1'));
     return { currentMap: saved.currentMap, sighting: { name: saved.sightings[0].name, map: saved.sightings[0].map,

@@ -30,9 +30,8 @@
         <h2>2. Watch for blueprints</h2>
         <p class="hint">In Chrome or Edge, select <strong>Start capture</strong>, then choose <strong>Window → ARC Raiders</strong> in the browser’s share picker. If the game is absent, use borderless windowed mode or choose <strong>Entire Screen</strong>.</p>
         <div class="row"><button id="start-capture" class="primary">Start capture</button><button id="stop-capture" disabled>Stop</button></div>
-        <button id="floating-alerts" class="full">Open floating game alert</button>
         <button id="enable-alerts" class="full">Enable Windows notifications</button>
-        <p class="hint">Run Start-Blueprint-Map.ps1 from your Windows desktop, then open the browser floating alert once before playing. The desktop helper hides it while scanning, shows it at full size for a blueprint, and hides it after 20 seconds or 10 seconds after map capture. Without the helper, it remains a small scan bar. Windows notifications are optional.</p>
+        <p class="hint">Blueprint sightings and map locations appear in the tracker. Windows notifications are optional.</p>
         <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
         <p class="hint" id="last-scan">No OCR scans yet</p>
         <details><summary>Last recognized text</summary><pre id="ocr-text">No scan yet</pre></details>
@@ -75,19 +74,6 @@
       </section>
     </div>
   </main>
-  <section id="discovery-alert" class="discovery-alert" aria-live="polite" aria-label="Blueprint discovery" hidden>
-    <div class="alert-details">
-      <button id="alert-close" class="alert-close" type="button" aria-label="Dismiss blueprint alert">×</button>
-      <div class="alert-heading"><span id="alert-state">Blueprint spotted</span><strong id="alert-name">Unidentified blueprint</strong></div>
-      <div class="alert-content">
-        <img id="alert-blueprint" alt="Captured blueprint tile">
-        <div><p id="alert-message">Open your in-game map to capture this location.</p><p id="alert-detail"></p></div>
-      </div>
-      <div id="alert-map-preview" class="alert-map-preview" hidden><img id="alert-map-image" alt="Matched map area with your captured location"></div>
-      <button id="alert-review" class="primary full" type="button">Review sighting</button>
-    </div>
-    <div class="alert-bar"><span class="scan-dot" aria-hidden="true"></span><span id="alert-bar">Scanning for blueprints</span></div>
-  </section>
   <script src="/vendor/tesseract.min.js"></script>
   <script type="module" src="/app.js"></script>
 </body>
