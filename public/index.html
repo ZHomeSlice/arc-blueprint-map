@@ -65,7 +65,16 @@
       </section>
       <section class="map-panel">
         <div class="panel-heading"><h2 id="current-map-title">Choose a map</h2><span id="pin-coordinates">No pin selected</span></div>
-        <div id="map" class="map"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><div id="pins"></div><div id="draft-pin" class="pin draft" hidden></div></div>
+        <div id="map" class="map"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><div id="pins"></div><div id="draft-pin" class="pin draft" hidden></div>
+          <aside id="pin-popup" class="pin-popup" role="dialog" aria-labelledby="pin-popup-title" tabindex="-1" hidden>
+            <button id="pin-popup-close" class="pin-popup-close" type="button" aria-label="Close pin details">×</button>
+            <span id="pin-popup-status" class="pin-popup-status"></span>
+            <h3 id="pin-popup-title"></h3>
+            <img id="pin-popup-image" alt="Captured blueprint icon" hidden>
+            <dl id="pin-popup-details"></dl>
+          </aside>
+        </div>
+        <p class="hint map-hint">Select a blueprint pin to see details about the find.</p>
       </section>
       <section class="frame-panel" id="frame-panel" hidden>
         <div class="panel-heading"><h2>Captured game frame</h2><button id="use-frame-map">Use as map image</button></div>

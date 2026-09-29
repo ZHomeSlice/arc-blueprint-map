@@ -12,6 +12,8 @@ const ui = {
   mapName: $('map-name'), useMap: $('use-map'), presetMap: $('preset-map'), usePresetMap: $('use-preset-map'),
   fullStella: $('use-stella-upper'), mapCredit: $('map-credit'), mapCreditLink: $('map-credit-link'), mapImage: $('map-image'), map: $('map'), pins: $('pins'),
   title: $('current-map-title'), coordinates: $('pin-coordinates'), draftPin: $('draft-pin'),
+  pinPopup: $('pin-popup'), pinPopupClose: $('pin-popup-close'), pinPopupTitle: $('pin-popup-title'),
+  pinPopupStatus: $('pin-popup-status'), pinPopupImage: $('pin-popup-image'), pinPopupDetails: $('pin-popup-details'),
   blueprintName: $('blueprint-name'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
   start: $('start-capture'), stop: $('stop-capture'), capturePosition: $('capture-position'), autoLocate: $('auto-locate'), mapScreenshot: $('saved-map-screenshot'),
   previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
@@ -40,6 +42,7 @@ let lastCandidateAt = 0;
 let cachedBase = null;
 let cachedBaseUrl = '';
 let selectedSightingId = null;
+let selectedMapPin = null;
 const unidentifiedBlueprint = 'Unidentified blueprint';
 const suppliedFinds = [
   { id: 'screenshot-20260927195813-defibrillator', name: 'Defibrillator', x: 0.188718, y: 0.553270,
@@ -121,6 +124,7 @@ function render() {
   for (const find of finds) {
     const pin = document.createElement('button');
     pin.className = 'pin'; pin.type = 'button';
+    pin.dataset.pinKind = 'find'; pin.dataset.pinId = find.id;
     pin.style.left = `${find.x * 100}%`; pin.style.top = `${find.y * 100}%`;
     pin.title = `${find.name} · ${new Date(find.foundAt).toLocaleString()}`;
     pin.setAttribute('aria-label', pin.title);
@@ -129,11 +133,14 @@ function render() {
     pin.addEventListener('click', event => {
       event.stopPropagation();
       ui.coordinates.textContent = `${find.name} · ${Math.round(find.x * 100)}%, ${Math.round(find.y * 100)}%`;
+      selectedMapPin = { kind: 'find', id: find.id };
+      renderPinPopup(true);
     });
     ui.pins.append(pin);
   }
   for (const sighting of data.sightings.filter(entry => !entry.dismissed && !entry.savedFindId && entry.position && entry.map === currentMap)) {
     const pin = document.createElement('button'); pin.type = 'button'; pin.className = 'pin sighting-pin';
+    pin.dataset.pinKind = 'sighting'; pin.dataset.pinId = sighting.id;
     pin.style.left = `${sighting.position.x * 100}%`; pin.style.top = `${sighting.position.y * 100}%`;
     pin.title = `${sighting.name} · location captured ${new Date(sighting.seenAt).toLocaleString()} · awaiting name or review`;
     pin.setAttribute('aria-label', pin.title);
@@ -142,10 +149,12 @@ function render() {
     pin.addEventListener('click', event => {
       event.stopPropagation();
       selectedSightingId = sighting.id;
+      selectedMapPin = { kind: 'sighting', id: sighting.id };
       ui.blueprintName.value = sighting.name === unidentifiedBlueprint ? '' : sighting.name;
       draftPosition = sighting.position;
       render();
       ui.pinHelp.textContent = 'This sighting is located. Confirm its name to save it as a find.';
+      renderPinPopup(true);
     });
     ui.pins.append(pin);
   }
@@ -175,6 +184,63 @@ function render() {
     item.append(description, remove); ui.list.append(item);
   }
   renderSightings();
+  renderPinPopup();
+}
+
+function renderPinPopup(focus = false) {
+  const find = selectedMapPin?.kind === 'find' && data.finds.find(entry => entry.id === selectedMapPin.id && entry.map === currentMap);
+  const sighting = selectedMapPin?.kind === 'sighting'
+    ? data.sightings.find(entry => entry.id === selectedMapPin.id && !entry.dismissed && !entry.savedFindId && entry.map === currentMap)
+    : find && data.sightings.find(entry => entry.id === find.sightingId || entry.savedFindId === find.id);
+  const entry = find || sighting;
+  if (!entry) {
+    selectedMapPin = null;
+    ui.pinPopup.hidden = true;
+    return;
+  }
+  const position = find || sighting.position;
+  const date = new Date(find?.foundAt || sighting.seenAt);
+  const timestamp = Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString();
+  ui.pinPopupStatus.textContent = find ? 'Saved find' : 'Location awaiting review';
+  ui.pinPopupTitle.textContent = entry.name;
+  ui.pinPopupImage.hidden = !sighting?.tilePreview;
+  if (sighting?.tilePreview) ui.pinPopupImage.src = sighting.tilePreview;
+  ui.pinPopupDetails.replaceChildren();
+  const details = [
+    ['Map', entry.map],
+    ['Found', timestamp],
+    ['Location', `${Math.round(position.x * 100)}% across, ${Math.round(position.y * 100)}% down`],
+    ['Accuracy', find?.accuracy || (sighting?.confidence ? `${Math.round(sighting.confidence * 100)}% map image match` : 'Approximate map position')],
+  ];
+  const nameSource = find?.nameSource || sighting?.nameSource;
+  if (nameSource) details.push(['Name from', nameSource]);
+  for (const [label, value] of details) {
+    const term = document.createElement('dt'); term.textContent = label;
+    const description = document.createElement('dd'); description.textContent = value;
+    ui.pinPopupDetails.append(term, description);
+  }
+  ui.pinPopup.hidden = false;
+  const mapBounds = ui.map.getBoundingClientRect();
+  const width = ui.pinPopup.offsetWidth;
+  const height = ui.pinPopup.offsetHeight;
+  const anchorX = position.x * mapBounds.width;
+  const anchorY = position.y * mapBounds.height;
+  const left = Math.max(8, Math.min(anchorX + 16, mapBounds.width - width - 8));
+  const preferredTop = anchorY + height + 16 > mapBounds.height ? anchorY - height - 16 : anchorY + 16;
+  const top = Math.max(8, Math.min(preferredTop, mapBounds.height - height - 8));
+  ui.pinPopup.style.left = `${left}px`;
+  ui.pinPopup.style.top = `${top}px`;
+  if (focus) ui.pinPopup.focus({ preventScroll: true });
+}
+
+function closePinPopup(focusPin = false) {
+  const previous = selectedMapPin;
+  selectedMapPin = null;
+  ui.pinPopup.hidden = true;
+  if (focusPin && previous) {
+    const pin = [...ui.pins.children].find(entry => entry.dataset.pinKind === previous.kind && entry.dataset.pinId === previous.id);
+    pin?.focus({ preventScroll: true });
+  }
 }
 
 function renderSightings() {
@@ -608,7 +674,13 @@ ui.screenshotFinds.addEventListener('click', () => {
   setStatus(added ? `Added ${added} approximate screenshot finds. Review their positions.` : 'The supplied screenshot finds are already on this map.');
 });
 ui.mapName.addEventListener('keydown', event => { if (event.key === 'Enter') chooseNamedMap(); });
-ui.map.addEventListener('click', event => setDraft(positionFromEvent(event, ui.map)));
+ui.map.addEventListener('click', event => { closePinPopup(); setDraft(positionFromEvent(event, ui.map)); });
+ui.pinPopup.addEventListener('click', event => event.stopPropagation());
+ui.pinPopupClose.addEventListener('click', () => closePinPopup(true));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !ui.pinPopup.hidden) closePinPopup(true);
+});
+window.addEventListener('resize', () => { if (!ui.pinPopup.hidden) renderPinPopup(); });
 ui.blueprintName.addEventListener('input', render);
 ui.mapImage.addEventListener('change', async () => {
   if (!ui.mapImage.files?.[0]) return;

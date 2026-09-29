@@ -49,6 +49,17 @@ try {
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings[0].name === 'Looting Mk. 3 (Survivor)');
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).finds[0]?.name === 'Looting Mk. 3 (Survivor)');
   if (await page.locator('#pins .pin:not(.sighting-pin)').count() !== 1) throw new Error('Confident icon match did not appear as a saved map pin');
+  await page.locator('#pins .pin:not(.sighting-pin)').click();
+  await page.locator('#pin-popup').waitFor({ state: 'visible' });
+  if (await page.locator('#pin-popup-title').textContent() !== 'Looting Mk. 3 (Survivor)' ||
+      !await page.locator('#pin-popup-details').textContent().then(text =>
+        text.includes('Stella Montis Upper') && text.includes('21% across, 60% down')) ||
+      !await page.locator('#pin-popup-image').isVisible()) {
+    throw new Error('Saved find popup did not describe the blueprint and map location');
+  }
+  if (!await page.locator('#draft-pin').isHidden()) throw new Error('Opening pin details created a draft pin');
+  await page.getByRole('button', { name: 'Close pin details' }).click();
+  if (!await page.locator('#pin-popup').isHidden()) throw new Error('Pin details did not close');
   if (!await page.evaluate(() => window.testNotifications.some(notification => notification.title.includes('Location captured')))) {
     throw new Error('Desktop location notification was not sent after opt-in');
   }
@@ -83,6 +94,10 @@ try {
     throw new Error('Uncertain icon was named automatically');
   }
   if (await page.locator('.pin.sighting-pin').count() !== 1) throw new Error('Saved located sighting was not restored as a blue pin');
+  await page.locator('.pin.sighting-pin').click();
+  if (await page.locator('#pin-popup-status').textContent() !== 'Location awaiting review') {
+    throw new Error('Provisional sighting did not show its review status');
+  }
   if (await page.locator('#pins .pin:not(.sighting-pin)').count() !== 1) throw new Error('Reload changed the previously saved find');
   console.log(JSON.stringify({ name: result.find.name, position: result.sighting.position, findCount: result.findCount }));
 } finally { await browser.close(); }
