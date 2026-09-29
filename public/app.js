@@ -45,6 +45,8 @@ let cachedBaseUrl = '';
 let selectedSightingId = null;
 let alertSightingId = null;
 let floatingWindow = null;
+let pipAutoHide = false;
+let pipVisible = null;
 let nativeOverlayOpen = false;
 let overlayRevision = 0;
 const alertLifecycle = new AlertLifecycle(() => renderAlertShell());
@@ -354,6 +356,24 @@ function syncNativeOverlay(expanded) {
     body: JSON.stringify(payload) }).catch(() => { nativeOverlayOpen = false; updateFloatingButton(); });
 }
 
+function syncPipVisibility(expanded) {
+  if (!pipAutoHide || !floatingWindow || floatingWindow.closed || pipVisible === expanded) return;
+  const targetWindow = floatingWindow;
+  pipVisible = expanded;
+  const bounds = { left: targetWindow.screenX, top: targetWindow.screenY,
+    width: targetWindow.outerWidth, height: targetWindow.outerHeight };
+  fetch('/api/overlay/pip-visibility', { method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visible: expanded, ...bounds }) })
+    .then(response => { if (!response.ok) throw new Error('Picture-in-Picture visibility control failed'); })
+    .catch(() => {
+      if (floatingWindow !== targetWindow) return;
+      pipAutoHide = false;
+      pipVisible = null;
+      setStatus('Could not hide the browser alert automatically. Use its Collapse button to keep it compact.', Boolean(mediaStream));
+    });
+}
+
 function renderAlertShell() {
   const sighting = data.sightings.find(entry => entry.id === alertSightingId);
   const expanded = Boolean(sighting && alertLifecycle.isActive(sighting.id));
@@ -362,6 +382,7 @@ function renderAlertShell() {
   ui.alertBar.textContent = expanded ? ui.alertState.textContent : mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
   syncNativeOverlay(expanded);
   renderFloatingAlert(expanded ? sighting : null);
+  syncPipVisibility(expanded);
 }
 
 function renderFloatingAlert(sighting) {
@@ -769,13 +790,21 @@ ui.mapImage.addEventListener('change', async () => {
 ui.start.addEventListener('click', startCapture);
 ui.stop.addEventListener('click', () => stopCapture());
 ui.floatingAlerts.addEventListener('click', async () => {
-  if (floatingWindow && !floatingWindow.closed) { floatingWindow.close(); return; }
+  if (floatingWindow && !floatingWindow.closed) {
+    floatingWindow.close();
+    pipAutoHide = false;
+    pipVisible = null;
+    return;
+  }
   if (window.documentPictureInPicture?.requestWindow && !window.__forceNativeAlert) {
     try {
       // Request the browser's always-on-top window during the button's user gesture.
-      const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
+      const autoHide = /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
+      const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: autoHide ? 330 : 88,
         disallowReturnToOpener: true, preferInitialWindowPlacement: true });
       floatingWindow = opened;
+      pipAutoHide = autoHide;
+      pipVisible = null;
       if (nativeOverlayOpen) {
         const response = await fetch('/api/overlay/close', { method: 'POST',
           headers: { 'Content-Type': 'application/json' }, body: '{}' });
@@ -795,7 +824,11 @@ ui.floatingAlerts.addEventListener('click', async () => {
           <span class="floating-state" id="floating-state">Scanning for blueprints</span>
           <button id="floating-expand" type="button" hidden>Expand</button></div></section>`;
       opened.addEventListener('pagehide', () => {
-        if (floatingWindow === opened) floatingWindow = null;
+        if (floatingWindow === opened) {
+          floatingWindow = null;
+          pipAutoHide = false;
+          pipVisible = null;
+        }
         updateFloatingButton();
       }, { once: true });
       opened.addEventListener('resize', () => renderFloatingAlert(data.sightings.find(sighting => sighting.id === alertSightingId)));
@@ -805,6 +838,8 @@ ui.floatingAlerts.addEventListener('click', async () => {
     } catch (error) {
       if (floatingWindow && !floatingWindow.closed) floatingWindow.close();
       floatingWindow = null;
+      pipAutoHide = false;
+      pipVisible = null;
       setStatus(`Browser alert could not open: ${error.message}`, Boolean(mediaStream));
     }
   }

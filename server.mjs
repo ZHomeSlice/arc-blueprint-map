@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const publicRoot = join(root, 'public');
@@ -10,6 +10,7 @@ const port = Number(process.env.PORT || 4177);
 const origin = `http://127.0.0.1:${port}`;
 let overlayProcess = null;
 let overlayState = { revision: 0, expanded: false, bar: 'Capture stopped' };
+let pipVisibilityQueue = Promise.resolve();
 const mime = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.wasm': 'application/wasm',
@@ -33,6 +34,23 @@ async function requestJson(req) {
   return JSON.parse(body || '{}');
 }
 
+function setPipVisibility(payload) {
+  const bounds = ['left', 'top', 'width', 'height'].map(key => Number(payload[key]));
+  if (typeof payload.visible !== 'boolean' || bounds.some(value => !Number.isInteger(value)) ||
+      bounds[2] < 250 || bounds[2] > 1200 || bounds[3] < 80 || bounds[3] > 900)
+    throw new Error('Invalid Picture-in-Picture window bounds');
+  const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+    join(root, 'Windows-Pip-Visibility.ps1'), '-Action', payload.visible ? 'Show' : 'Hide',
+    '-Left', String(bounds[0]), '-Top', String(bounds[1]),
+    '-Width', String(bounds[2]), '-Height', String(bounds[3])];
+  const work = pipVisibilityQueue.then(() => new Promise((resolve, reject) => {
+    execFile('powershell.exe', args, { cwd: root, windowsHide: true, timeout: 5000 },
+      (error, stdout, stderr) => error ? reject(new Error(stderr.trim() || error.message)) : resolve(stdout.trim()));
+  }));
+  pipVisibilityQueue = work.catch(() => {});
+  return work;
+}
+
 async function overlayRequest(req, res, pathname) {
   if (pathname === '/api/overlay/state' && req.method === 'GET') {
     json(res, 200, overlayState); return;
@@ -42,6 +60,11 @@ async function overlayRequest(req, res, pathname) {
   }
   if (req.method !== 'POST') { json(res, 405, { error: 'Method not allowed' }); return; }
   const payload = await requestJson(req);
+  if (pathname === '/api/overlay/pip-visibility') {
+    if (process.platform !== 'win32') { json(res, 501, { error: 'Windows Picture-in-Picture control unavailable' }); return; }
+    await setPipVisibility(payload);
+    json(res, 200, { visible: payload.visible }); return;
+  }
   if (pathname === '/api/overlay/state') {
     if (!Number.isFinite(payload.revision) || payload.revision <= overlayState.revision) {
       json(res, 200, { revision: overlayState.revision }); return;

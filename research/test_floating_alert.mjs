@@ -12,6 +12,11 @@ try {
   page.on('pageerror', error => console.error('PAGE ERROR', error.message));
   let nativeOpenRequests = 0;
   let nativeCloseRequests = 0;
+  const visibilityCalls = [];
+  await page.route('**/api/overlay/pip-visibility', route => {
+    visibilityCalls.push(route.request().postDataJSON());
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
   await page.route('**/api/overlay/status', route =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '{"open":true}' }));
   await page.route('**/api/overlay/close', route => {
@@ -30,7 +35,8 @@ try {
     const pipDocument = document.implementation.createHTMLDocument('ARC Blueprint Alert');
     const listeners = new Map();
     window.testPiP = {
-      document: pipDocument, closed: false, innerHeight: 88,
+      document: pipDocument, closed: false, innerHeight: 330,
+      outerWidth: 406, outerHeight: 373, screenX: 2626, screenY: 1300,
       addEventListener(type, listener) { listeners.set(type, listener); },
       resizeTo(width, height) { this.innerHeight = height; listeners.get('resize')?.(); },
       close() { this.closed = true; listeners.get('pagehide')?.(); },
@@ -53,6 +59,7 @@ try {
   await page.waitForFunction(() => window.testPiP.document.querySelector('.floating-card'));
   assert.equal(nativeOpenRequests, 0);
   assert.equal(nativeCloseRequests, 1);
+  assert.equal(visibilityCalls[0]?.visible, false);
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent), 'Capture stopped');
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('expanded')), false);
   await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
@@ -61,10 +68,10 @@ try {
   await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints');
   await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
   await page.waitForFunction(() => window.testPiP.document.querySelector('.floating-card')?.classList.contains('expanded'));
-  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('compact')), true);
-  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent.includes('Blueprint spotted')), true);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('compact')), false);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent), 'Blueprint spotted');
   assert.ok((await page.evaluate(() => window.testPiP.document.querySelector('#floating-bar-icon').src)).startsWith('data:image/jpeg'));
-  await page.evaluate(() => window.testPiP.document.querySelector('#floating-expand').click());
+  assert.equal(visibilityCalls.at(-1)?.visible, true);
   assert.equal(await page.evaluate(() => window.testPiP.innerHeight), 330);
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-message').textContent), 'Press M and keep the in-game map open.');
   await page.evaluate(() => window.testSetFrame('/test-floating-map.jpg'));
@@ -74,7 +81,6 @@ try {
   console.log('Browser alert showed the blueprint icon and captured map position.');
   await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints', null, { timeout: 13_000 });
   assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('expanded')), false);
-  await page.evaluate(() => window.testPiP.document.querySelector('#floating-expand').click());
-  assert.equal(await page.evaluate(() => window.testPiP.innerHeight), 88);
-  console.log('Floating alert collapsed 10 seconds after location capture.');
+  assert.equal(visibilityCalls.at(-1)?.visible, false);
+  console.log('Floating alert hid 10 seconds after location capture.');
 } finally { await browser.close(); }
