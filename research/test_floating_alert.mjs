@@ -9,6 +9,7 @@ const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google
 try {
   const context = await browser.newContext();
   const page = await context.newPage();
+  page.on('pageerror', error => console.error('PAGE ERROR', error.message));
   await page.route('**/test-floating-inventory.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: inventory }));
   await page.route('**/test-floating-map.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: map }));
   await page.route('**/vendor/tesseract.min.js', route => route.fulfill({ status: 200, contentType: 'text/javascript',
@@ -20,7 +21,7 @@ try {
         const image = new Image(); image.src = file; await image.decode();
         canvas.getContext('2d').drawImage(image, 0, 0, 1600, 900);
       };
-      await window.testSetFrame('/test-floating-inventory.jpg');
+      canvas.getContext('2d').fillRect(0, 0, canvas.width, canvas.height);
       return canvas.captureStream(15);
     };
   });
@@ -29,16 +30,24 @@ try {
   const floatingEvent = context.waitForEvent('page');
   await page.getByRole('button', { name: 'Open floating game alert' }).click();
   const floating = await floatingEvent;
-  await floating.waitForFunction(() => getComputedStyle(document.documentElement).backgroundColor === 'rgb(17, 27, 26)');
-  await floating.getByText('Waiting for a blueprint').waitFor();
+  await floating.waitForFunction(() => Boolean(document.querySelector('.floating-card')));
+  await floating.getByText('Capture stopped').waitFor();
+  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), false);
   await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
   await page.getByRole('button', { name: 'Start capture' }).click();
-  await floating.getByText('Deadline').waitFor();
+  await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
+  await floating.getByText('Scanning for blueprints').waitFor();
+  await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
+  await floating.waitForFunction(() => document.querySelector('.floating-card')?.classList.contains('expanded'));
+  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), true);
   await floating.getByText('Press M and keep the in-game map open.').waitFor();
   assert.ok((await floating.locator('#floating-blueprint').getAttribute('src')).startsWith('data:image/jpeg'));
   await page.evaluate(() => window.testSetFrame('/test-floating-map.jpg'));
   await floating.getByText('Pin saved').waitFor();
   await floating.getByText('Stella Montis Upper', { exact: false }).waitFor();
   assert.equal(await floating.locator('#floating-map').isVisible(), true);
-  console.log('Floating alert showed the blueprint icon and captured map position.');
+  console.log(`Floating alert showed the blueprint icon and captured map position; viewport height ${await floating.evaluate(() => innerHeight)}px.`);
+  await floating.getByText('Scanning for blueprints').waitFor({ timeout: 13_000 });
+  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), false);
+  console.log('Floating alert collapsed 10 seconds after location capture.');
 } finally { await browser.close(); }

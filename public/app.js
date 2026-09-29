@@ -5,6 +5,7 @@ import { cropMapTitle, mapFamilyFromTitle, selectMapCandidate } from './map-dete
 import { mapPresets, presetForMap, presetForMode, presetMapData } from './map-presets.js';
 import { detectBlueprintTiles } from './blueprint-visual.js';
 import { identifyBlueprintIcon, identifyBlueprintPreview, rankBlueprintIcons, rankBlueprintPreview } from './icon-match.js';
+import { AlertLifecycle, LOCATED_ALERT_MS, UNLOCATED_ALERT_MS } from './alert-lifecycle.js';
 
 const $ = id => document.getElementById(id);
 const storageKey = 'arc-blueprint-map-v1';
@@ -19,7 +20,7 @@ const ui = {
   ocrText: $('ocr-text'), note: $('capture-note'), pinHelp: $('pin-help'), export: $('export-data'), import: $('import-data'), screenshotFinds: $('add-screenshot-finds'),
   lastScan: $('last-scan'), sightingCount: $('sighting-count'), sightingList: $('sighting-list'), sightingPreview: $('sighting-preview'),
   selectedBlueprintTile: $('selected-blueprint-tile'), iconCandidates: $('icon-candidates'), iconCandidateList: $('icon-candidate-list'),
-  enableAlerts: $('enable-alerts'), floatingAlerts: $('floating-alerts'), alert: $('discovery-alert'), alertClose: $('alert-close'), alertState: $('alert-state'), alertName: $('alert-name'),
+  enableAlerts: $('enable-alerts'), floatingAlerts: $('floating-alerts'), alert: $('discovery-alert'), alertBar: $('alert-bar'), alertClose: $('alert-close'), alertState: $('alert-state'), alertName: $('alert-name'),
   alertBlueprint: $('alert-blueprint'), alertMessage: $('alert-message'), alertDetail: $('alert-detail'), alertMapPreview: $('alert-map-preview'),
   alertMapImage: $('alert-map-image'), alertReview: $('alert-review'),
 };
@@ -44,6 +45,7 @@ let cachedBaseUrl = '';
 let selectedSightingId = null;
 let alertSightingId = null;
 let floatingWindow = null;
+const alertLifecycle = new AlertLifecycle(() => renderAlertShell());
 const unidentifiedBlueprint = 'Unidentified blueprint';
 const suppliedFinds = [
   { id: 'screenshot-20260927195813-defibrillator', name: 'Defibrillator', x: 0.188718, y: 0.553270,
@@ -211,7 +213,10 @@ function renderSightings() {
         }
       }
       if (sighting.dismissed && selectedSightingId === sighting.id) selectedSightingId = null;
-      if (sighting.dismissed && alertSightingId === sighting.id) ui.alert.hidden = true;
+      if (sighting.dismissed && alertSightingId === sighting.id) {
+        alertLifecycle.dismiss(sighting.id);
+        renderAlertShell();
+      }
       persist(); render();
     });
     item.append(button, review); ui.sightingList.append(item);
@@ -331,11 +336,46 @@ function updateFloatingButton() {
     : floatingWindow && !floatingWindow.closed ? 'Close floating game alert' : 'Open floating game alert';
 }
 
+function renderAlertShell() {
+  const sighting = data.sightings.find(entry => entry.id === alertSightingId);
+  const expanded = Boolean(sighting && alertLifecycle.isActive(sighting.id));
+  ui.alert.classList.toggle('expanded', expanded);
+  ui.alert.hidden = !mediaStream && !expanded;
+  ui.alertBar.textContent = expanded ? 'Blueprint spotted' : mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
+  renderFloatingAlert(expanded ? sighting : null);
+}
+
 function renderFloatingAlert(sighting) {
   if (!floatingWindow || floatingWindow.closed) return;
   const floating = floatingWindow.document;
   const state = floating.getElementById('floating-state');
   if (!state) return;
+  const card = floating.querySelector('.floating-card');
+  const expanded = Boolean(sighting && alertLifecycle.isActive(sighting.id));
+  const wasExpanded = card.classList.contains('expanded');
+  card.classList.toggle('expanded', expanded);
+  if (expanded !== wasExpanded) {
+    try {
+      const windowToMove = floatingWindow;
+      const x = windowToMove.screenX;
+      const bottom = windowToMove.screenY + windowToMove.outerHeight;
+      windowToMove.resizeTo(390, expanded ? 330 : 88);
+      // Keep the bottom edge where the player placed the scan bar.
+      setTimeout(() => {
+        if (floatingWindow !== windowToMove || windowToMove.closed) return;
+        try { windowToMove.moveTo(x, bottom - windowToMove.outerHeight); }
+        catch { /* Some browsers restrict moving Picture-in-Picture windows. */ }
+      }, 50);
+    }
+    catch { /* The browser may require a click to resize Picture-in-Picture. */ }
+  }
+  const expand = floating.getElementById('floating-expand');
+  expand.hidden = !expanded || floatingWindow.innerHeight >= 250;
+  expand.onclick = () => floatingWindow.resizeTo(390, 330);
+  if (!expanded) {
+    state.textContent = mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
+    return;
+  }
   const name = floating.getElementById('floating-name');
   const image = floating.getElementById('floating-blueprint');
   const message = floating.getElementById('floating-message');
@@ -343,19 +383,19 @@ function renderFloatingAlert(sighting) {
   const mapImage = floating.getElementById('floating-map');
   const review = floating.getElementById('floating-review');
   const located = Boolean(sighting?.position);
-  state.textContent = !sighting ? 'Watching game window' : sighting.savedFindId ? 'Pin saved'
+  state.textContent = sighting.savedFindId ? 'Pin saved'
     : located ? 'Location captured' : 'Blueprint spotted';
-  name.textContent = sighting?.name || 'Waiting for a blueprint';
-  image.hidden = !sighting;
-  if (sighting) image.src = sighting.tilePreview || sighting.frame;
-  message.textContent = !sighting ? 'Open a container in ARC Raiders.' : sighting.savedFindId
+  name.textContent = sighting.name;
+  image.src = sighting.tilePreview || sighting.frame;
+  image.hidden = false;
+  message.textContent = sighting.savedFindId
     ? 'Blueprint and map location saved.' : located ? 'Map position captured. Review the name and pin.'
       : 'Press M and keep the in-game map open.';
   detail.textContent = located ? `${sighting.map} · ${Math.round(sighting.position.x * 100)}% across, ${Math.round(sighting.position.y * 100)}% down` : '';
   const hasPreview = located && alertSightingId === sighting.id && !ui.alertMapPreview.hidden;
   mapImage.hidden = !hasPreview;
   if (hasPreview) mapImage.src = ui.alertMapImage.src;
-  review.hidden = !sighting;
+  review.hidden = false;
   review.textContent = sighting?.savedFindId ? 'View saved pin' : located ? 'View location in tracker' : 'Review sighting';
   review.onclick = () => {
     window.focus();
@@ -368,7 +408,7 @@ async function mapPreview(sighting) {
   if (!map?.image || !sighting.position) return;
   try {
     const image = await baseImage(map.image);
-    if (alertSightingId !== sighting.id || ui.alert.hidden) return;
+    if (alertSightingId !== sighting.id || !alertLifecycle.isActive(sighting.id)) return;
     const preview = document.createElement('canvas'); preview.width = 480; preview.height = 190;
     const sourceWidth = Math.min(image.width * 0.26, image.height * preview.width / preview.height);
     const sourceHeight = sourceWidth * preview.height / preview.width;
@@ -386,9 +426,9 @@ async function mapPreview(sighting) {
   } catch { ui.alertMapPreview.hidden = true; }
 }
 
-function showDiscoveryAlert(sighting) {
+function showDiscoveryAlert(sighting, durationMs = null) {
   alertSightingId = sighting.id;
-  ui.alert.hidden = false;
+  if (durationMs !== null) alertLifecycle.show(sighting.id, durationMs);
   ui.alertName.textContent = sighting.name;
   ui.alertBlueprint.src = sighting.tilePreview || sighting.frame;
   ui.alertBlueprint.alt = sighting.tilePreview ? 'Captured blueprint tile' : 'Captured game frame with blueprint';
@@ -402,8 +442,8 @@ function showDiscoveryAlert(sighting) {
     : 'Waiting for the in-game map view';
   ui.alertReview.textContent = sighting.savedFindId ? 'View saved pin' : located ? 'View on map' : 'Review sighting';
   ui.alertMapPreview.hidden = true;
-  renderFloatingAlert(sighting);
-  if (located) mapPreview(sighting);
+  renderAlertShell();
+  if (located && alertLifecycle.isActive(sighting.id)) mapPreview(sighting);
 }
 
 function recordSighting(name, frame, tile = null) {
@@ -435,7 +475,7 @@ function recordSighting(name, frame, tile = null) {
   selectedSightingId = sighting.id;
   ui.blueprintName.value = name === unidentifiedBlueprint ? '' : name;
   persist(); renderSightings();
-  showDiscoveryAlert(sighting);
+  showDiscoveryAlert(sighting, UNLOCATED_ALERT_MS);
   desktopAlert(`Blueprint spotted: ${name}`, 'Open your in-game map now to capture your location.', sighting.tilePreview);
   return true;
 }
@@ -578,7 +618,7 @@ async function scanVisualFrame() {
     persist(); render();
     const selected = sameContainer.find(sighting => sighting.id === selectedSightingId) || sameContainer[0];
     if (selectedSightingId === selected.id && !selected.savedFindId) applyMapSuggestion(suggestion, frame);
-    showDiscoveryAlert(selected);
+    showDiscoveryAlert(selected, LOCATED_ALERT_MS);
     desktopAlert(`Location captured: ${selected.name}`, `${suggestion.mapName} map position is ready to review.`, selected.tilePreview);
     if (sameContainer.length > 1) setStatus(`Map location captured for ${sameContainer.length} blueprints. Review their pins.`, true);
   } catch (error) {
@@ -636,6 +676,7 @@ async function startCapture() {
     video.srcObject = newStream;
     await video.play();
     mediaStream = newStream;
+    renderAlertShell();
     const track = mediaStream.getVideoTracks()[0];
     const surface = track.getSettings().displaySurface;
     ui.previewDetails.textContent = `${surface === 'monitor' ? 'Entire Screen' : surface === 'window' ? 'Window' : surface === 'browser' ? 'Browser tab' : 'Shared display'} · ${video.videoWidth} × ${video.videoHeight}`;
@@ -662,6 +703,8 @@ function stopCapture(message = 'Capture stopped') {
   clearTimeout(scanTimer);
   clearInterval(visualTimer);
   const oldStream = mediaStream; mediaStream = null;
+  alertLifecycle.dismiss();
+  renderAlertShell();
   mapWasOpen = false; mapSessionMatched = false;
   oldStream?.getTracks().forEach(track => track.stop());
   if (video) { video.srcObject = null; video = null; }
@@ -718,7 +761,7 @@ ui.stop.addEventListener('click', () => stopCapture());
 ui.floatingAlerts.addEventListener('click', async () => {
   if (floatingWindow && !floatingWindow.closed) { floatingWindow.close(); return; }
   try {
-    const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 330,
+    const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
       disallowReturnToOpener: true, preferInitialWindowPlacement: true });
     floatingWindow = opened;
     const style = opened.document.createElement('style');
@@ -726,17 +769,20 @@ ui.floatingAlerts.addEventListener('click', async () => {
     opened.document.head.append(style);
     opened.document.title = 'ARC Blueprint Alert';
     opened.document.body.innerHTML = `<section class="floating-card" aria-live="polite">
-      <span class="floating-state" id="floating-state"></span><strong class="floating-name" id="floating-name"></strong>
-      <div class="floating-content"><img id="floating-blueprint" alt="Captured blueprint icon" hidden>
-        <div><p id="floating-message"></p><p class="floating-detail" id="floating-detail"></p></div></div>
-      <img class="floating-map" id="floating-map" alt="Matched map position" hidden>
-      <button class="floating-review" id="floating-review" type="button" hidden>Review sighting</button></section>`;
+      <div class="floating-details"><strong class="floating-name" id="floating-name"></strong>
+        <div class="floating-content"><img id="floating-blueprint" alt="Captured blueprint icon" hidden>
+          <div><p id="floating-message"></p><p class="floating-detail" id="floating-detail"></p></div></div>
+        <img class="floating-map" id="floating-map" alt="Matched map position" hidden>
+        <button class="floating-review" id="floating-review" type="button" hidden>Review sighting</button></div>
+      <div class="floating-bar"><span class="floating-state" id="floating-state">Scanning for blueprints</span>
+        <button id="floating-expand" type="button" hidden>Expand</button></div></section>`;
     opened.addEventListener('pagehide', () => {
       if (floatingWindow === opened) floatingWindow = null;
       updateFloatingButton();
     }, { once: true });
+    opened.addEventListener('resize', () => renderFloatingAlert(data.sightings.find(sighting => sighting.id === alertSightingId)));
     updateFloatingButton();
-    renderFloatingAlert(!ui.alert.hidden ? data.sightings.find(sighting => sighting.id === alertSightingId) : null);
+    renderAlertShell();
   } catch (error) { setStatus(`Floating alert could not open: ${error.message}`, Boolean(mediaStream)); }
 });
 function updateAlertPermission() {
@@ -750,7 +796,7 @@ ui.enableAlerts.addEventListener('click', async () => {
   catch { setStatus('Could not enable Windows notifications. The floating alert and in-page card still work.'); }
   updateAlertPermission();
 });
-ui.alertClose.addEventListener('click', () => { ui.alert.hidden = true; });
+ui.alertClose.addEventListener('click', () => { alertLifecycle.dismiss(); renderAlertShell(); });
 function reviewSighting(sighting) {
   if (!sighting) return;
   if (sighting.map && sighting.map !== currentMap) useMap(sighting.map);
@@ -761,7 +807,8 @@ function reviewSighting(sighting) {
   ui.pinHelp.textContent = sighting.savedFindId ? 'This blueprint is already saved on the map.' : sighting.position
     ? 'Map position captured. Review the name and pin, then select Save pin.'
     : 'Open the in-game map soon after finding the blueprint to capture its position.';
-  ui.alert.hidden = true;
+  alertLifecycle.dismiss();
+  renderAlertShell();
   (sighting.position ? ui.map : ui.sightingList).scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 ui.alertReview.addEventListener('click', () => reviewSighting(data.sightings.find(entry => entry.id === alertSightingId)));
@@ -811,7 +858,7 @@ ui.mapScreenshot.addEventListener('change', async () => {
     persist(); renderSightings();
     ui.blueprintName.value = selected.name === unidentifiedBlueprint ? '' : selected.name;
     applyMapSuggestion(suggestion, frame);
-    showDiscoveryAlert(selected);
+    showDiscoveryAlert(selected, LOCATED_ALERT_MS);
     setStatus(`Corrected map position for ${sameContainer.length} sighting${sameContainer.length === 1 ? '' : 's'}. Review before saving.`, Boolean(mediaStream));
   } catch (error) { setStatus(`Could not read map screenshot: ${error.message}`); }
   finally { ui.mapScreenshot.value = ''; }

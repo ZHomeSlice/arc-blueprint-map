@@ -34,7 +34,7 @@ try {
   await page.getByRole('button', { name: 'Enable Windows notifications' }).click();
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.waitForFunction(() => document.querySelector('#sighting-count')?.textContent === '1');
-  await page.getByText('Blueprint spotted', { exact: true }).waitFor();
+  await page.waitForFunction(() => document.querySelector('#alert-state')?.textContent === 'Blueprint spotted');
   if (!await page.locator('#alert-blueprint').evaluate(image => image.src.startsWith('data:image/jpeg'))) {
     throw new Error('Discovery card did not show a captured blueprint image');
   }
@@ -56,7 +56,8 @@ try {
     throw new Error('Desktop location notification was not sent after opt-in');
   }
   await page.getByRole('button', { name: 'View saved pin' }).click();
-  if (!await page.locator('#discovery-alert').isHidden()) throw new Error('Discovery card covered the map during review');
+  if (await page.locator('#discovery-alert').evaluate(card => card.classList.contains('expanded')))
+    throw new Error('Discovery card covered the map during review');
   const result = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('arc-blueprint-map-v1'));
     return { currentMap: saved.currentMap, sighting: { name: saved.sightings[0].name, map: saved.sightings[0].map,
