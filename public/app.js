@@ -332,10 +332,13 @@ function desktopAlert(title, body, blueprintImage) {
 }
 
 function updateFloatingButton() {
-  const supported = Boolean(window.documentPictureInPicture?.requestWindow) || /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
+  const browserAlert = Boolean(window.documentPictureInPicture?.requestWindow) && !window.__forceNativeAlert;
+  const supported = browserAlert || /^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '');
   ui.floatingAlerts.disabled = !supported;
   ui.floatingAlerts.textContent = !supported ? 'Floating alert unavailable in this browser'
-    : nativeOverlayOpen || (floatingWindow && !floatingWindow.closed) ? 'Close floating game alert' : 'Open floating game alert';
+    : floatingWindow && !floatingWindow.closed ? 'Close floating game alert'
+      : nativeOverlayOpen && browserAlert ? 'Use browser floating alert'
+        : nativeOverlayOpen ? 'Close floating game alert' : 'Open floating game alert';
 }
 
 function syncNativeOverlay(expanded) {
@@ -368,26 +371,15 @@ function renderFloatingAlert(sighting) {
   if (!state) return;
   const card = floating.querySelector('.floating-card');
   const expanded = Boolean(sighting && alertLifecycle.isActive(sighting.id));
-  const wasExpanded = card.classList.contains('expanded');
   card.classList.toggle('expanded', expanded);
-  if (expanded !== wasExpanded) {
-    try {
-      const windowToMove = floatingWindow;
-      const x = windowToMove.screenX;
-      const bottom = windowToMove.screenY + windowToMove.outerHeight;
-      windowToMove.resizeTo(390, expanded ? 330 : 88);
-      // Keep the bottom edge where the player placed the scan bar.
-      setTimeout(() => {
-        if (floatingWindow !== windowToMove || windowToMove.closed) return;
-        try { windowToMove.moveTo(x, bottom - windowToMove.outerHeight); }
-        catch { /* Some browsers restrict moving Picture-in-Picture windows. */ }
-      }, 50);
-    }
-    catch { /* The browser may require a click to resize Picture-in-Picture. */ }
-  }
+  const compact = floatingWindow.innerHeight < 250;
+  card.classList.toggle('compact', compact);
   const expand = floating.getElementById('floating-expand');
-  expand.hidden = !expanded || floatingWindow.innerHeight >= 250;
-  expand.onclick = () => floatingWindow.resizeTo(390, 330);
+  expand.hidden = !((expanded && compact) || (!expanded && !compact));
+  expand.textContent = expanded ? 'Expand' : 'Collapse';
+  expand.onclick = () => floatingWindow.resizeTo(390, expanded ? 330 : 88);
+  const barIcon = floating.getElementById('floating-bar-icon');
+  barIcon.hidden = !expanded;
   if (!expanded) {
     state.textContent = mediaStream ? 'Scanning for blueprints' : 'Capture stopped';
     return;
@@ -399,8 +391,10 @@ function renderFloatingAlert(sighting) {
   const mapImage = floating.getElementById('floating-map');
   const review = floating.getElementById('floating-review');
   const located = Boolean(sighting?.position);
-  state.textContent = sighting.savedFindId ? 'Pin saved'
+  const status = sighting.savedFindId ? 'Pin saved'
     : located ? 'Location captured' : 'Blueprint spotted';
+  state.textContent = compact ? `${status}: ${sighting.name}` : status;
+  barIcon.src = sighting.tilePreview || sighting.frame;
   name.textContent = sighting.name;
   image.src = sighting.tilePreview || sighting.frame;
   image.hidden = false;
@@ -775,48 +769,60 @@ ui.mapImage.addEventListener('change', async () => {
 ui.start.addEventListener('click', startCapture);
 ui.stop.addEventListener('click', () => stopCapture());
 ui.floatingAlerts.addEventListener('click', async () => {
-  if (/^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '') && !window.__forceBrowserAlert) {
+  if (floatingWindow && !floatingWindow.closed) { floatingWindow.close(); return; }
+  if (window.documentPictureInPicture?.requestWindow && !window.__forceNativeAlert) {
     try {
-      const status = await (await fetch('/api/overlay/status')).json();
-      if (status.open) {
-        await fetch('/api/overlay/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-        nativeOverlayOpen = false;
-      } else {
-        const response = await fetch('/api/overlay/open', { method: 'POST',
+      // Request the browser's always-on-top window during the button's user gesture.
+      const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
+        disallowReturnToOpener: true, preferInitialWindowPlacement: true });
+      floatingWindow = opened;
+      if (nativeOverlayOpen) {
+        const response = await fetch('/api/overlay/close', { method: 'POST',
           headers: { 'Content-Type': 'application/json' }, body: '{}' });
-        if (!response.ok) throw new Error('Windows overlay unavailable');
-        nativeOverlayOpen = true;
+        if (response.ok) nativeOverlayOpen = false;
       }
+      const style = opened.document.createElement('style');
+      style.textContent = await (await fetch('/floating-alert.css')).text();
+      opened.document.head.append(style);
+      opened.document.title = 'ARC Blueprint Alert';
+      opened.document.body.innerHTML = `<section class="floating-card" aria-live="polite">
+        <div class="floating-details"><strong class="floating-name" id="floating-name"></strong>
+          <div class="floating-content"><img id="floating-blueprint" alt="Captured blueprint icon" hidden>
+            <div><p id="floating-message"></p><p class="floating-detail" id="floating-detail"></p></div></div>
+          <img class="floating-map" id="floating-map" alt="Matched map position" hidden>
+          <button class="floating-review" id="floating-review" type="button" hidden>Review sighting</button></div>
+        <div class="floating-bar"><img id="floating-bar-icon" alt="" hidden>
+          <span class="floating-state" id="floating-state">Scanning for blueprints</span>
+          <button id="floating-expand" type="button" hidden>Expand</button></div></section>`;
+      opened.addEventListener('pagehide', () => {
+        if (floatingWindow === opened) floatingWindow = null;
+        updateFloatingButton();
+      }, { once: true });
+      opened.addEventListener('resize', () => renderFloatingAlert(data.sightings.find(sighting => sighting.id === alertSightingId)));
       updateFloatingButton();
       renderAlertShell();
       return;
-    } catch { /* Use the browser alert when the Windows helper is unavailable. */ }
+    } catch (error) {
+      if (floatingWindow && !floatingWindow.closed) floatingWindow.close();
+      floatingWindow = null;
+      setStatus(`Browser alert could not open: ${error.message}`, Boolean(mediaStream));
+    }
   }
-  if (floatingWindow && !floatingWindow.closed) { floatingWindow.close(); return; }
+  if (!/^Win/i.test(navigator.userAgentData?.platform || navigator.platform || '')) return;
   try {
-    const opened = await window.documentPictureInPicture.requestWindow({ width: 390, height: 88,
-      disallowReturnToOpener: true, preferInitialWindowPlacement: true });
-    floatingWindow = opened;
-    const style = opened.document.createElement('style');
-    style.textContent = await (await fetch('/floating-alert.css')).text();
-    opened.document.head.append(style);
-    opened.document.title = 'ARC Blueprint Alert';
-    opened.document.body.innerHTML = `<section class="floating-card" aria-live="polite">
-      <div class="floating-details"><strong class="floating-name" id="floating-name"></strong>
-        <div class="floating-content"><img id="floating-blueprint" alt="Captured blueprint icon" hidden>
-          <div><p id="floating-message"></p><p class="floating-detail" id="floating-detail"></p></div></div>
-        <img class="floating-map" id="floating-map" alt="Matched map position" hidden>
-        <button class="floating-review" id="floating-review" type="button" hidden>Review sighting</button></div>
-      <div class="floating-bar"><span class="floating-state" id="floating-state">Scanning for blueprints</span>
-        <button id="floating-expand" type="button" hidden>Expand</button></div></section>`;
-    opened.addEventListener('pagehide', () => {
-      if (floatingWindow === opened) floatingWindow = null;
-      updateFloatingButton();
-    }, { once: true });
-    opened.addEventListener('resize', () => renderFloatingAlert(data.sightings.find(sighting => sighting.id === alertSightingId)));
+    const status = await (await fetch('/api/overlay/status')).json();
+    if (status.open) {
+      await fetch('/api/overlay/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      nativeOverlayOpen = false;
+    } else {
+      const response = await fetch('/api/overlay/open', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (!response.ok) throw new Error('Windows overlay unavailable');
+      nativeOverlayOpen = true;
+    }
     updateFloatingButton();
     renderAlertShell();
-  } catch (error) { setStatus(`Floating alert could not open: ${error.message}`, Boolean(mediaStream)); }
+  } catch (error) { setStatus(`Windows alert could not open: ${error.message}`, Boolean(mediaStream)); }
 });
 function updateAlertPermission() {
   ui.enableAlerts.textContent = !('Notification' in window) ? 'Windows notifications unavailable in this browser'

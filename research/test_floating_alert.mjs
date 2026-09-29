@@ -10,12 +10,34 @@ try {
   const context = await browser.newContext();
   const page = await context.newPage();
   page.on('pageerror', error => console.error('PAGE ERROR', error.message));
+  let nativeOpenRequests = 0;
+  let nativeCloseRequests = 0;
+  await page.route('**/api/overlay/status', route =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{"open":true}' }));
+  await page.route('**/api/overlay/close', route => {
+    nativeCloseRequests++;
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{"open":false}' });
+  });
+  await page.route('**/api/overlay/open', route => {
+    nativeOpenRequests++;
+    return route.fulfill({ status: 200, contentType: 'application/json', body: '{"open":true}' });
+  });
   await page.route('**/test-floating-inventory.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: inventory }));
   await page.route('**/test-floating-map.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: map }));
   await page.route('**/vendor/tesseract.min.js', route => route.fulfill({ status: 200, contentType: 'text/javascript',
     body: 'window.Tesseract={createWorker:async()=>({recognize:async image=>image.width===960&&image.height===150?{data:{text:"STELLA MONTIS"}}:new Promise(()=>{})})};' }));
   await page.addInitScript(() => {
-    window.__forceBrowserAlert = true;
+    const pipDocument = document.implementation.createHTMLDocument('ARC Blueprint Alert');
+    const listeners = new Map();
+    window.testPiP = {
+      document: pipDocument, closed: false, innerHeight: 88,
+      addEventListener(type, listener) { listeners.set(type, listener); },
+      resizeTo(width, height) { this.innerHeight = height; listeners.get('resize')?.(); },
+      close() { this.closed = true; listeners.get('pagehide')?.(); },
+    };
+    Object.defineProperty(window, 'documentPictureInPicture', {
+      configurable: true, value: { requestWindow: async () => window.testPiP },
+    });
     navigator.mediaDevices.getDisplayMedia = async () => {
       const canvas = document.createElement('canvas'); canvas.width = 1600; canvas.height = 900;
       window.testSetFrame = async file => {
@@ -27,28 +49,32 @@ try {
     };
   });
   await page.goto('http://127.0.0.1:4177/');
-  assert.equal(await page.evaluate(() => Boolean(window.documentPictureInPicture)), true);
-  const floatingEvent = context.waitForEvent('page');
-  await page.getByRole('button', { name: 'Open floating game alert' }).click();
-  const floating = await floatingEvent;
-  await floating.waitForFunction(() => Boolean(document.querySelector('.floating-card')));
-  await floating.getByText('Capture stopped').waitFor();
-  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), false);
+  await page.getByRole('button', { name: 'Use browser floating alert' }).click();
+  await page.waitForFunction(() => window.testPiP.document.querySelector('.floating-card'));
+  assert.equal(nativeOpenRequests, 0);
+  assert.equal(nativeCloseRequests, 1);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent), 'Capture stopped');
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('expanded')), false);
   await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
-  await floating.getByText('Scanning for blueprints').waitFor();
+  await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints');
   await page.evaluate(() => window.testSetFrame('/test-floating-inventory.jpg'));
-  await floating.waitForFunction(() => document.querySelector('.floating-card')?.classList.contains('expanded'));
-  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), true);
-  await floating.getByText('Press M and keep the in-game map open.').waitFor();
-  assert.ok((await floating.locator('#floating-blueprint').getAttribute('src')).startsWith('data:image/jpeg'));
+  await page.waitForFunction(() => window.testPiP.document.querySelector('.floating-card')?.classList.contains('expanded'));
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('compact')), true);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-state').textContent.includes('Blueprint spotted')), true);
+  assert.ok((await page.evaluate(() => window.testPiP.document.querySelector('#floating-bar-icon').src)).startsWith('data:image/jpeg'));
+  await page.evaluate(() => window.testPiP.document.querySelector('#floating-expand').click());
+  assert.equal(await page.evaluate(() => window.testPiP.innerHeight), 330);
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-message').textContent), 'Press M and keep the in-game map open.');
   await page.evaluate(() => window.testSetFrame('/test-floating-map.jpg'));
-  await floating.getByText('Pin saved').waitFor();
-  await floating.getByText('Stella Montis Upper', { exact: false }).waitFor();
-  assert.equal(await floating.locator('#floating-map').isVisible(), true);
-  console.log(`Floating alert showed the blueprint icon and captured map position; viewport height ${await floating.evaluate(() => innerHeight)}px.`);
-  await floating.getByText('Scanning for blueprints').waitFor({ timeout: 13_000 });
-  assert.equal(await floating.locator('.floating-card').evaluate(card => card.classList.contains('expanded')), false);
+  await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Pin saved');
+  await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-detail').textContent.includes('Stella Montis Upper'));
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('#floating-map').hidden), false);
+  console.log('Browser alert showed the blueprint icon and captured map position.');
+  await page.waitForFunction(() => window.testPiP.document.querySelector('#floating-state').textContent === 'Scanning for blueprints', null, { timeout: 13_000 });
+  assert.equal(await page.evaluate(() => window.testPiP.document.querySelector('.floating-card').classList.contains('expanded')), false);
+  await page.evaluate(() => window.testPiP.document.querySelector('#floating-expand').click());
+  assert.equal(await page.evaluate(() => window.testPiP.innerHeight), 88);
   console.log('Floating alert collapsed 10 seconds after location capture.');
 } finally { await browser.close(); }
