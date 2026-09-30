@@ -5,6 +5,12 @@ const widths = [36, 44, 52, 60, 68, 76, 84];
 const centersX = [40, 45, 50, 55, 60];
 const centersY = [30, 36, 42, 48, 54];
 let catalogPromise;
+const inGameReferences = [
+  { name: 'Extended Barrel II', icon: '/icon-references/extended-barrel-ii.png', shape: 'long' },
+  { name: 'Aphelion', icon: '/icon-references/aphelion.png', shape: 'long' },
+  { name: 'Seeker Grenade', icon: '/icon-references/seeker-grenade.png' },
+];
+let referencePromise;
 
 function imageData(source, width, height, crop) {
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
@@ -61,6 +67,34 @@ async function catalog() {
   return catalogPromise;
 }
 
+async function references() {
+  if (!referencePromise) referencePromise = Promise.all(inGameReferences.map(async entry => {
+    const image = new Image(); image.src = entry.icon; await image.decode();
+    return { name: entry.name, pixels: imageData(image, 50, 45, [0, 0, image.width, image.height]) };
+  }));
+  return referencePromise;
+}
+
+function referenceScore(target, reference) {
+  let sumA = 0, sumB = 0, squareA = 0, squareB = 0, product = 0;
+  for (let y = 0; y < 45; y++) for (let x = 0; x < 50; x++) {
+    const offset = (y * 50 + x) * 4;
+    for (let channel = 0; channel < 3; channel++) {
+      const source = reference[offset + channel];
+      const targetOffset = ((y * 2) * 100 + x * 2) * 4 + channel;
+      const sample = (target[targetOffset] + target[targetOffset + 4] +
+        target[targetOffset + 400] + target[targetOffset + 404]) / 4;
+      sumA += source; sumB += sample;
+      squareA += source * source; squareB += sample * sample; product += source * sample;
+    }
+  }
+  const count = 50 * 45 * 3;
+  const varianceA = squareA - sumA * sumA / count;
+  const varianceB = squareB - sumB * sumB / count;
+  return varianceA > 1 && varianceB > 1
+    ? (product - sumA * sumB / count) / Math.sqrt(varianceA * varianceB) : -1;
+}
+
 function scoreTemplate(template, target) {
   let best = -1;
   for (const cy of centersY) for (const cx of centersX) {
@@ -87,6 +121,35 @@ async function rankTarget(target) {
     let score = -1;
     for (const template of entry.templates) score = Math.max(score, scoreTemplate(template, target));
     matches.push({ name: entry.name, icon: entry.icon, score });
+  }
+  // A labeled in-game tile can differ substantially from its catalog artwork.
+  // Use it only when the tile itself is very similar and no catalog match is strong.
+  const strongestCatalog = Math.max(...matches.map(entry => entry.score));
+  if (strongestCatalog < 0.78) {
+    const rankedReferences = (await references()).map(reference => ({
+      name: reference.name, icon: inGameReferences.find(entry => entry.name === reference.name).icon,
+      shape: inGameReferences.find(entry => entry.name === reference.name).shape,
+      similarity: referenceScore(target, reference.pixels),
+    })).sort((first, second) => second.similarity - first.similarity);
+    const [first, second] = rankedReferences;
+    if (first?.similarity >= 0.9 && first.similarity - (second?.similarity || 0) >= 0.06) {
+      const entry = matches.find(match => match.name === first.name);
+      if (entry) {
+        entry.score = Math.max(entry.score, Math.min(0.98, 0.85 + (first.similarity - 0.9)));
+        entry.icon = first.icon;
+      }
+    } else {
+      const catalogLeader = matches.reduce((best, entry) => entry.score > best.score ? entry : best);
+      const longReferences = rankedReferences.filter(reference => reference.shape === 'long');
+      if (/^(?:Silencer|Extended Barrel)/.test(catalogLeader.name) && longReferences[0]?.similarity >= 0.7) {
+        // Similar long items can fool the catalog artwork matcher. Offer the
+        // labeled game images for review without naming either automatically.
+        for (const reference of longReferences) {
+          const entry = matches.find(match => match.name === reference.name);
+          if (entry) { entry.score = Math.max(entry.score, 0.75); entry.icon = reference.icon; }
+        }
+      }
+    }
   }
   matches.sort((first, second) => second.score - first.score);
   return matches.slice(0, 3);

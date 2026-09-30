@@ -5,6 +5,7 @@ import { blueprintFromText, clamp01 } from '../public/logic.js';
 test('recognizes a blueprint on the same or next line', () => {
   assert.equal(blueprintFromText('Found\nAnvil Blueprint\nRare'), 'Anvil');
   assert.equal(blueprintFromText('Anvil\nBlueprint'), 'Anvil');
+  assert.equal(blueprintFromText('EXPLOSIVE MINE BLUEPRINT\nRequired resources'), 'EXPLOSIVE MINE');
   assert.equal(blueprintFromText('Ammo\nWeapon Case'), null);
 });
 

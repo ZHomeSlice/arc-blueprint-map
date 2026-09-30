@@ -5,6 +5,19 @@ const containerTiles = [
   [169, 427], [280, 427], [390, 427], [502, 427],
 ];
 
+export function isLootPanelVisible(image) {
+  const { width, height, data } = image;
+  if (!width || !height || !data || Math.abs(width / height - 16 / 9) > 0.15) return false;
+  // The bright CONTAINER heading sits just above the eight loot slots. Checking
+  // pixels here keeps a blue recipe elsewhere in the game UI from starting a scan.
+  let headingPixels = 0;
+  for (let y = 245; y < 280; y++) for (let x = 165; x < 345; x++) {
+    const offset = (Math.floor(y * height / 1152) * width + Math.floor(x * width / 2048)) * 4;
+    if (data[offset] > 175 && data[offset + 1] > 175 && data[offset + 2] > 175) headingPixels++;
+  }
+  return headingPixels >= 900;
+}
+
 export function detectBlueprintTiles(image, recognizedText = '') {
   const text = String(recognizedText).toUpperCase();
   if (/\bBLUEPRINTS\b/.test(text) && /\bFOUND\b/.test(text)) return [];

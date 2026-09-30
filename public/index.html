@@ -32,12 +32,14 @@
         <div class="row"><button id="start-capture" class="primary">Start capture</button><button id="stop-capture" disabled>Stop</button></div>
         <button id="enable-alerts" class="full">Enable Windows notifications</button>
         <p class="hint">Blueprint sightings and map locations appear in the tracker. Windows notifications are optional.</p>
-        <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
+        <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. Name OCR reads the upper-left quarter of the game frame. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
         <p class="hint" id="last-scan">No OCR scans yet</p>
         <details><summary>Last recognized text</summary><pre id="ocr-text">No scan yet</pre></details>
         <details open><summary>Blueprint sightings <span id="sighting-count">0</span></summary><ul id="sighting-list"></ul>
+          <details id="reviewed-sightings" hidden><summary>Reviewed false alerts <span id="reviewed-count">0</span></summary><ul id="reviewed-list"></ul>
+            <button id="forget-dismissed" type="button">Forget saved false-alert examples</button></details>
           <img id="selected-blueprint-tile" alt="Captured blueprint icon from selected sighting" hidden>
-          <div id="icon-candidates" hidden><strong>Possible catalog icons — confirm visually</strong><div id="icon-candidate-list"></div></div>
+          <div id="icon-candidates" hidden><strong>Possible blueprint icons — confirm visually</strong><div id="icon-candidate-list"></div></div>
           <img id="sighting-preview" alt="Captured frame from selected blueprint sighting" hidden></details>
       </section>
       <section class="card">
@@ -54,6 +56,21 @@
         <p class="hint">These use your player position in the following map screenshot, so each location is approximate.</p>
         <p class="hint"><a href="/collection.html" target="_blank" rel="noopener">View your labeled blueprint collection (73/83)</a></p>
         <div class="row"><button id="export-data">Export JSON</button><label class="button" for="import-data">Import JSON</label><input type="file" id="import-data" accept="application/json" hidden></div>
+        <h3>Share confirmed blueprints</h3>
+        <label for="game-name">In-game name</label><div class="row"><input id="game-name" maxlength="40" placeholder="For example: ZHomeSlice"><button id="read-game-name" type="button">Read from game</button></div>
+        <button id="share-blueprints" type="button" class="full">Copy blueprint JSON and open Form</button>
+        <textarea id="share-json" class="share-json" rows="5" readonly hidden aria-label="Blueprint JSON to paste into the Form"></textarea>
+        <p class="hint">Check Share beside each confirmed find below. OCR-only automatic pins start unchecked so you can review them first. The share copy contains names, map and floor, positions, dates, and a sortable reliability estimate. It leaves out screenshots and notes.</p>
+        <h3>Community finds</h3>
+        <p class="hint"><a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsdODLTK8GpXX_1061l1kk15j4yPDVwURrXOgcZCbxulwiIgsqDSPdUKc87G6xark2ofznSMi3DMB/pub?gid=929643861&amp;single=true&amp;output=csv" target="_blank" rel="noopener noreferrer">Download latest community CSV</a></p>
+        <label class="button full" for="community-import">Import community CSV</label><input type="file" id="community-import" accept=".csv,text/csv" hidden>
+        <div class="row"><label><input id="show-personal" type="checkbox" checked> My finds</label><label><input id="show-community" type="checkbox" checked> Community</label></div>
+        <label for="community-player">Player</label><select id="community-player"><option value="">All players</option></select>
+        <label for="community-score">Minimum reliability: <output id="community-score-value">0</output></label><input id="community-score" type="range" min="0" max="100" value="0">
+        <label for="community-after">Discovered on or after</label><input id="community-after" type="date">
+        <label for="community-sort">Sort community finds</label><select id="community-sort"><option value="reliability">Reliability, highest first</option><option value="newest">Discovery date, newest first</option></select>
+        <p class="hint" id="community-count">No community CSV imported.</p>
+        <ul id="community-list" class="community-list"></ul>
         <ul id="find-list"></ul>
       </section>
     </aside>
@@ -65,16 +82,36 @@
       </section>
       <section class="map-panel">
         <div class="panel-heading"><h2 id="current-map-title">Choose a map</h2><span id="pin-coordinates">No pin selected</span></div>
-        <div id="map" class="map"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><div id="pins"></div><div id="draft-pin" class="pin draft" hidden></div>
+        <div id="map" class="map"><div id="map-content" class="map-content"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><svg id="pin-spider-lines" class="pin-spider-lines" aria-hidden="true"></svg><div id="pins"></div><div id="draft-pin" class="pin draft" hidden></div></div>
           <aside id="pin-popup" class="pin-popup" role="dialog" aria-labelledby="pin-popup-title" tabindex="-1" hidden>
             <button id="pin-popup-close" class="pin-popup-close" type="button" aria-label="Close pin details">×</button>
             <span id="pin-popup-status" class="pin-popup-status"></span>
             <h3 id="pin-popup-title"></h3>
             <img id="pin-popup-image" alt="Captured blueprint icon" hidden>
             <dl id="pin-popup-details"></dl>
+            <div id="pin-popup-choices" class="pin-popup-choices" hidden></div>
+            <button id="pin-popup-edit" type="button">Edit pin</button>
+            <form id="pin-popup-form" hidden>
+              <label for="pin-edit-name">Blueprint name</label><input id="pin-edit-name" maxlength="80" required>
+              <label for="pin-edit-map">Map</label><select id="pin-edit-map" required></select>
+              <div class="pin-edit-position">
+                <label for="pin-edit-x">Across %<input id="pin-edit-x" type="number" min="0" max="100" step="0.1" required></label>
+                <label for="pin-edit-y">Down %<input id="pin-edit-y" type="number" min="0" max="100" step="0.1" required></label>
+              </div>
+              <div class="pin-edit-actions"><button class="primary" type="submit">Save changes</button><button id="pin-edit-cancel" type="button">Cancel</button></div>
+            </form>
           </aside>
         </div>
-        <p class="hint map-hint">Select a blueprint pin to see details about the find.</p>
+        <div class="rarity-legend" aria-label="Estimated blueprint find rarity">
+          <strong>Find rarity estimate</strong>
+          <span><i class="rarity-dot rarity-veryCommon"></i>Very common</span>
+          <span><i class="rarity-dot rarity-common"></i>Common</span>
+          <span><i class="rarity-dot rarity-uncommon"></i>Uncommon</span>
+          <span><i class="rarity-dot rarity-rare"></i>Very rare</span>
+          <span><i class="rarity-dot rarity-extreme"></i>Extremely rare</span>
+        </div>
+        <p class="hint map-hint">Colors estimate how hard each blueprint is to find, based on reported drops and source restrictions. Exact drop odds are unpublished; unreviewed sightings have a hollow dashed dot. <a href="https://arcraiders.wiki/wiki/Blueprints" target="_blank" rel="noopener noreferrer">Blueprint sources</a> · <a href="https://metaforge.app/arc-raiders/how-to-find-every-blueprint-in-arc-raiders" target="_blank" rel="noopener noreferrer">Farming guide</a></p>
+        <p class="hint map-hint">Use the mouse wheel to zoom toward the pointer. Hover over stacked dots or names to spread them; lines lead back to each saved spot. A numbered dot combines finds with the same name—click it to choose one to review or edit.</p>
       </section>
       <section class="frame-panel" id="frame-panel" hidden>
         <div class="panel-heading"><h2>Captured game frame</h2><button id="use-frame-map">Use as map image</button></div>

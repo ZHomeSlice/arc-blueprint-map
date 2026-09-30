@@ -1,27 +1,42 @@
-import { blueprintFromText, createFind, positionFromEvent } from './logic.js';
+import { blueprintFromText, clamp01, createFind } from './logic.js';
 import { detectPlayerArrow, isArcMapView, matchMapFrames } from './map-match.js';
 import { matchFullMap, mapPatchAppearance, pointOnFullMap } from './full-map-match.js';
 import { cropMapTitle, mapFamilyFromTitle, selectMapCandidate } from './map-detect.js';
+import { cropBlueprintName } from './ocr-crop.js';
 import { mapPresets, presetForMap, presetForMode, presetMapData } from './map-presets.js';
-import { detectBlueprintTiles } from './blueprint-visual.js';
+import { detectBlueprintTiles, isLootPanelVisible } from './blueprint-visual.js';
+import { LootWindow } from './loot-window.js';
+import { COMMUNITY_STORAGE_KEY, buildSharePayload, importCommunityCsv, prefilledFormUrl, reliabilityForFind } from './community-share.js';
 import { identifyBlueprintIcon, identifyBlueprintPreview, rankBlueprintIcons, rankBlueprintPreview } from './icon-match.js';
+import { tileSignature, tileSimilarity } from './tile-feedback.js';
+import { rarityForBlueprint } from './blueprint-rarity.js';
+import { layoutSpiderGroups } from './spider-layout.js';
 
 const $ = id => document.getElementById(id);
 const storageKey = 'arc-blueprint-map-v1';
 const ui = {
   mapName: $('map-name'), useMap: $('use-map'), presetMap: $('preset-map'), usePresetMap: $('use-preset-map'),
-  fullStella: $('use-stella-upper'), mapCredit: $('map-credit'), mapCreditLink: $('map-credit-link'), mapImage: $('map-image'), map: $('map'), pins: $('pins'),
+  fullStella: $('use-stella-upper'), mapCredit: $('map-credit'), mapCreditLink: $('map-credit-link'), mapImage: $('map-image'), map: $('map'), mapContent: $('map-content'), pins: $('pins'), spiderLines: $('pin-spider-lines'),
   title: $('current-map-title'), coordinates: $('pin-coordinates'), draftPin: $('draft-pin'),
   pinPopup: $('pin-popup'), pinPopupClose: $('pin-popup-close'), pinPopupTitle: $('pin-popup-title'),
   pinPopupStatus: $('pin-popup-status'), pinPopupImage: $('pin-popup-image'), pinPopupDetails: $('pin-popup-details'),
+  pinPopupChoices: $('pin-popup-choices'),
+  pinPopupEdit: $('pin-popup-edit'), pinPopupForm: $('pin-popup-form'), pinEditName: $('pin-edit-name'),
+  pinEditMap: $('pin-edit-map'), pinEditX: $('pin-edit-x'), pinEditY: $('pin-edit-y'), pinEditCancel: $('pin-edit-cancel'),
   blueprintName: $('blueprint-name'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
   start: $('start-capture'), stop: $('stop-capture'), capturePosition: $('capture-position'), autoLocate: $('auto-locate'), mapScreenshot: $('saved-map-screenshot'),
   previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
   framePanel: $('frame-panel'), frame: $('frame-canvas'), useFrameMap: $('use-frame-map'), status: $('status'), dot: $('status-dot'),
   ocrText: $('ocr-text'), note: $('capture-note'), pinHelp: $('pin-help'), export: $('export-data'), import: $('import-data'), screenshotFinds: $('add-screenshot-finds'),
-  lastScan: $('last-scan'), sightingCount: $('sighting-count'), sightingList: $('sighting-list'), sightingPreview: $('sighting-preview'),
+  lastScan: $('last-scan'), sightingCount: $('sighting-count'), sightingList: $('sighting-list'),
+  reviewedSightings: $('reviewed-sightings'), reviewedCount: $('reviewed-count'), reviewedList: $('reviewed-list'), sightingPreview: $('sighting-preview'),
+  forgetDismissed: $('forget-dismissed'),
   selectedBlueprintTile: $('selected-blueprint-tile'), iconCandidates: $('icon-candidates'), iconCandidateList: $('icon-candidate-list'),
   enableAlerts: $('enable-alerts'),
+  gameName: $('game-name'), readGameName: $('read-game-name'), shareBlueprints: $('share-blueprints'), shareJson: $('share-json'),
+  communityImport: $('community-import'), showPersonal: $('show-personal'), showCommunity: $('show-community'),
+  communityPlayer: $('community-player'), communityScore: $('community-score'), communityScoreValue: $('community-score-value'),
+  communityAfter: $('community-after'), communitySort: $('community-sort'), communityCount: $('community-count'), communityList: $('community-list'),
 };
 
 let data = loadData();
@@ -34,15 +49,27 @@ let scanTimer = null;
 let scanning = false;
 let visualTimer = null;
 let visualScanning = false;
-let visibleBlueprintSlots = new Set();
+const lootWindow = new LootWindow();
+let community = loadCommunity();
 let mapWasOpen = false;
 let mapSessionMatched = false;
 let lastCandidate = '';
-let lastCandidateAt = 0;
+let lastCandidateSightingId = '';
 let cachedBase = null;
 let cachedBaseUrl = '';
 let selectedSightingId = null;
 let selectedMapPin = null;
+let editingMapPin = false;
+let mapZoom = { scale: 1, x: 0, y: 0 };
+let hoveredPinKey = '';
+let pendingPinKey = '';
+let pinEnterTimer = null;
+let pinExitTimer = null;
+let expandedPins = null;
+let spiderExitTimer = null;
+let groupChooserOpen = false;
+let choosingGroupMember = false;
+const signatureCache = new Map();
 const unidentifiedBlueprint = 'Unidentified blueprint';
 const suppliedFinds = [
   { id: 'screenshot-20260927195813-defibrillator', name: 'Defibrillator', x: 0.188718, y: 0.553270,
@@ -61,10 +88,18 @@ function loadData() {
     const saved = JSON.parse(localStorage.getItem(storageKey));
     if (saved && typeof saved === 'object' && Array.isArray(saved.finds) && saved.maps) {
       saved.sightings = Array.isArray(saved.sightings) ? saved.sightings : [];
+      saved.dismissedTiles = Array.isArray(saved.dismissedTiles) ? saved.dismissedTiles : [];
+      for (const sighting of saved.sightings) {
+        if (sighting.dismissed && sighting.suppressRepeat !== false && sighting.tilePreview &&
+            !saved.dismissedTiles.some(entry => entry.id === sighting.id)) {
+          saved.dismissedTiles.push({ id: sighting.id, tilePreview: sighting.tilePreview });
+        }
+      }
+      saved.dismissedTiles = saved.dismissedTiles.slice(-32);
       return saved;
     }
   } catch { /* Ignore damaged local data. */ }
-  return { version: 1, currentMap: '', maps: {}, finds: [], sightings: [] };
+  return { version: 1, currentMap: '', maps: {}, finds: [], sightings: [], dismissedTiles: [] };
 }
 
 function persist() {
@@ -72,19 +107,287 @@ function persist() {
   catch { setStatus('Browser storage is full. Export your finds now.'); }
 }
 
+function loadCommunity() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(COMMUNITY_STORAGE_KEY));
+    if (Array.isArray(stored?.players)) return stored;
+  } catch { /* Import can replace damaged community data. */ }
+  return { players: [], importedAt: null };
+}
+
+function shareApproved(find) {
+  if (typeof find.shareApproved === 'boolean') return find.shareApproved;
+  return Boolean(rarityForBlueprint(find.name)) &&
+    (!find.autoGenerated || find.nameSource === 'user edited' || find.nameSource === 'user confirmed icon' || find.nameSource === 'catalog icon');
+}
+
 function setStatus(message, active = false) {
   ui.status.textContent = message;
   ui.dot.classList.toggle('active', active);
 }
 
+function markPinForHover(pin, key, position) {
+  pin.dataset.hoverKey = key;
+  pin.dataset.originX = String(position.x);
+  pin.dataset.originY = String(position.y);
+  if (hoveredPinKey === key) pin.classList.add('hover-stable');
+}
+
+function clearPinHover() {
+  clearTimeout(pinEnterTimer);
+  clearTimeout(pinExitTimer);
+  pendingPinKey = '';
+  hoveredPinKey = '';
+  for (const pin of ui.pins.children) pin.classList.remove('hover-stable');
+}
+
+function pinFromPointerTarget(target) {
+  const pin = target instanceof Element ? target.closest('.pin') : null;
+  return pin && ui.pins.contains(pin) ? pin : null;
+}
+
+function mapPoint(position) {
+  return { x: mapZoom.x + position.x * ui.map.clientWidth * mapZoom.scale,
+    y: mapZoom.y + position.y * ui.map.clientHeight * mapZoom.scale };
+}
+
+function clearSpiderPins() {
+  clearTimeout(spiderExitTimer);
+  if (!expandedPins) return;
+  for (const pin of ui.pins.children) {
+    pin.style.left = `${Number(pin.dataset.originX) * 100}%`;
+    pin.style.top = `${Number(pin.dataset.originY) * 100}%`;
+    pin.classList.remove('spider-pin', 'spider-left', 'spider-hidden');
+    pin.querySelector('.pin-count')?.remove();
+    if (pin.dataset.baseTitle) { pin.title = pin.dataset.baseTitle; delete pin.dataset.baseTitle; }
+    pin.setAttribute('aria-label', pin.title);
+  }
+  ui.spiderLines.replaceChildren();
+  expandedPins = null;
+}
+
+function layoutSpiderPins() {
+  if (!expandedPins) return;
+  const pins = expandedPins.keys.map(key => [...ui.pins.children].find(pin => pin.dataset.hoverKey === key)).filter(Boolean);
+  if (pins.length < 2) { clearSpiderPins(); return; }
+  for (const pin of ui.pins.children) {
+    pin.style.left = `${Number(pin.dataset.originX) * 100}%`;
+    pin.style.top = `${Number(pin.dataset.originY) * 100}%`;
+    pin.classList.remove('spider-pin', 'spider-left', 'spider-hidden');
+    pin.querySelector('.pin-count')?.remove();
+    if (pin.dataset.baseTitle) { pin.title = pin.dataset.baseTitle; delete pin.dataset.baseTitle; }
+    pin.setAttribute('aria-label', pin.title);
+  }
+  const width = ui.map.clientWidth;
+  const height = ui.map.clientHeight;
+  const origins = pins.map(pin => mapPoint({ x: Number(pin.dataset.originX), y: Number(pin.dataset.originY) }));
+  const anchor = { x: origins.reduce((sum, item) => sum + item.x, 0) / pins.length,
+    y: origins.reduce((sum, item) => sum + item.y, 0) / pins.length };
+  const byName = new Map();
+  for (const pin of pins) {
+    const name = pin.querySelector('.pin-label')?.textContent.trim() || '';
+    const normalized = name.toLocaleLowerCase().replace(/\s+/g, ' ');
+    const id = normalized && normalized !== unidentifiedBlueprint.toLowerCase() ? normalized : pin.dataset.hoverKey;
+    if (!byName.has(id)) byName.set(id, { id, name, members: [], origins: [], center: null, labelWidth: 0 });
+    const group = byName.get(id);
+    group.members.push(pin);
+    group.origins.push(mapPoint({ x: Number(pin.dataset.originX), y: Number(pin.dataset.originY) }));
+    group.labelWidth = Math.max(group.labelWidth, pin.querySelector('.pin-label')?.offsetWidth || 0);
+  }
+  const groups = [...byName.values()];
+  for (const group of groups) group.center = {
+    x: group.origins.reduce((sum, item) => sum + item.x, 0) / group.origins.length,
+    y: group.origins.reduce((sum, item) => sum + item.y, 0) / group.origins.length,
+  };
+  const placements = layoutSpiderGroups(groups, { width, height }, anchor);
+  const points = new Map();
+  const lines = [];
+  for (const [index, group] of groups.entries()) {
+    const { x, y, side } = placements[index];
+    const contentX = (x - mapZoom.x) / mapZoom.scale;
+    const contentY = (y - mapZoom.y) / mapZoom.scale;
+    const representative = group.members[0];
+    group.representativeKey = representative.dataset.hoverKey;
+    representative.style.left = `${contentX}px`;
+    representative.style.top = `${contentY}px`;
+    representative.classList.add('spider-pin');
+    if (side === 'left') representative.classList.add('spider-left');
+    if (group.members.length > 1) {
+      representative.dataset.baseTitle = representative.title;
+      representative.title = `${group.name} · ${group.members.length} sightings; click to choose`;
+      const count = document.createElement('span');
+      count.className = 'pin-count'; count.textContent = String(group.members.length);
+      count.setAttribute('aria-label', `${group.members.length} sightings`);
+      representative.append(count);
+      representative.setAttribute('aria-label', `${group.name} · ${group.members.length} sightings; click to choose`);
+      for (const duplicate of group.members.slice(1)) duplicate.classList.add('spider-hidden');
+    }
+    for (const pin of group.members) {
+      const originX = Number(pin.dataset.originX), originY = Number(pin.dataset.originY);
+      points.set(pin.dataset.hoverKey, { origin: mapPoint({ x: originX, y: originY }), target: { x, y } });
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(originX * width));
+      line.setAttribute('y1', String(originY * height));
+      line.setAttribute('x2', String(contentX));
+      line.setAttribute('y2', String(contentY));
+      lines.push(line);
+    }
+  }
+  ui.spiderLines.replaceChildren(...lines);
+  expandedPins.points = points;
+  expandedPins.anchor = anchor;
+  expandedPins.groups = groups;
+}
+
+function pinPopupAnchor(key, position) {
+  if (expandedPins?.points.has(key)) return expandedPins.points.get(key).target;
+  return mapPoint(position);
+}
+
+function showGroupChooser(group) {
+  groupChooserOpen = true;
+  editingMapPin = false;
+  selectedMapPin = { kind: 'group', id: group.id };
+  ui.pinPopupStatus.textContent = 'Multiple discoveries';
+  ui.pinPopupTitle.textContent = `${group.name} · ${group.members.length}`;
+  ui.pinPopupImage.hidden = true;
+  ui.pinPopupDetails.hidden = true;
+  ui.pinPopupEdit.hidden = true;
+  ui.pinPopupForm.hidden = true;
+  ui.pinPopupChoices.hidden = false;
+  ui.pinPopupChoices.replaceChildren();
+  for (const pin of group.members) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    const date = new Date(pin.dataset.foundAt);
+    const when = Number.isNaN(date.getTime()) ? 'Date unknown' : date.toLocaleString();
+    const position = `${Math.round(Number(pin.dataset.originX) * 100)}% across, ${Math.round(Number(pin.dataset.originY) * 100)}% down`;
+    button.textContent = `${pin.dataset.source} · ${when} · ${position}`;
+    button.addEventListener('click', () => {
+      groupChooserOpen = false;
+      ui.pinPopupChoices.hidden = true;
+      const current = [...ui.pins.children].find(entry => entry.dataset.hoverKey === pin.dataset.hoverKey);
+      if (!current) { closePinPopup(); return; }
+      choosingGroupMember = true;
+      try { current.click(); } finally { choosingGroupMember = false; }
+    });
+    ui.pinPopupChoices.append(button);
+  }
+  ui.pinPopup.hidden = false;
+  const bounds = ui.map.getBoundingClientRect();
+  const point = expandedPins?.points.get(group.representativeKey)?.target || group.center;
+  ui.pinPopup.style.left = `${Math.max(8, Math.min(point.x + 16, bounds.width - ui.pinPopup.offsetWidth - 8))}px`;
+  ui.pinPopup.style.top = `${Math.max(8, Math.min(point.y + 16, bounds.height - ui.pinPopup.offsetHeight - 8))}px`;
+  ui.pinPopup.focus({ preventScroll: true });
+}
+
+function distanceToSegment(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const ratio = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy || 1)));
+  return Math.hypot(point.x - start.x - ratio * dx, point.y - start.y - ratio * dy);
+}
+
+function pointerInsideSpider(event) {
+  if (!expandedPins) return false;
+  const bounds = ui.map.getBoundingClientRect();
+  const point = { x: event.clientX - bounds.left - ui.map.clientLeft, y: event.clientY - bounds.top - ui.map.clientTop };
+  if (Math.hypot(point.x - expandedPins.anchor.x, point.y - expandedPins.anchor.y) < 55) return true;
+  for (const [key, endpoints] of expandedPins.points) {
+    if (distanceToSegment(point, endpoints.origin, endpoints.target) < 26) return true;
+    const pin = [...ui.pins.children].find(entry => entry.dataset.hoverKey === key);
+    for (const element of [pin, pin?.querySelector('.pin-label')]) {
+      if (!element) continue;
+      const box = element.getBoundingClientRect();
+      if (event.clientX >= box.left - 12 && event.clientX <= box.right + 12 &&
+          event.clientY >= box.top - 12 && event.clientY <= box.bottom + 12) return true;
+    }
+  }
+  return false;
+}
+
+function scheduleSpiderClose() {
+  if (!expandedPins || spiderExitTimer) return;
+  spiderExitTimer = setTimeout(() => { spiderExitTimer = null; clearSpiderPins(); }, 750);
+}
+
+function onMapPointerMove(event) {
+  if (event.pointerType !== 'mouse' || !ui.map.classList.contains('has-image')) return;
+  if (expandedPins) {
+    if (pointerInsideSpider(event)) { clearTimeout(spiderExitTimer); spiderExitTimer = null; }
+    else scheduleSpiderClose();
+    return;
+  }
+  const bounds = ui.map.getBoundingClientRect();
+  const point = { x: event.clientX - bounds.left - ui.map.clientLeft, y: event.clientY - bounds.top - ui.map.clientTop };
+  const pins = [...ui.pins.children];
+  const candidates = pins.map(pin => ({ pin, point: mapPoint({ x: Number(pin.dataset.originX), y: Number(pin.dataset.originY) }) }));
+  const labelHit = candidates.find(({ pin }) => {
+    const label = pin.querySelector('.pin-label')?.getBoundingClientRect();
+    return label && event.clientX >= label.left && event.clientX <= label.right &&
+      event.clientY >= label.top && event.clientY <= label.bottom;
+  });
+  const nearest = labelHit || candidates.reduce((best, item) => !best ||
+    Math.hypot(item.point.x - point.x, item.point.y - point.y) < Math.hypot(best.point.x - point.x, best.point.y - point.y)
+    ? item : best, null);
+  if (!nearest || (!labelHit && Math.hypot(nearest.point.x - point.x, nearest.point.y - point.y) > 34)) return;
+  const group = pins.filter(pin => {
+    const position = mapPoint({ x: Number(pin.dataset.originX), y: Number(pin.dataset.originY) });
+    return Math.hypot(position.x - nearest.point.x, position.y - nearest.point.y) <= 52;
+  });
+  if (group.length < 2) return;
+  expandedPins = { keys: group.map(pin => pin.dataset.hoverKey), points: new Map(), anchor: nearest.point };
+  layoutSpiderPins();
+}
+
+function applyMapZoom() {
+  ui.mapContent.style.transform = `translate(${mapZoom.x}px, ${mapZoom.y}px) scale(${mapZoom.scale})`;
+  ui.map.style.setProperty('--pin-scale', String(1 / mapZoom.scale));
+  layoutSpiderPins();
+}
+
+function positionOnZoomedMap(event) {
+  const bounds = ui.map.getBoundingClientRect();
+  return {
+    x: clamp01((event.clientX - bounds.left - ui.map.clientLeft - mapZoom.x) / (ui.map.clientWidth * mapZoom.scale)),
+    y: clamp01((event.clientY - bounds.top - ui.map.clientTop - mapZoom.y) / (ui.map.clientHeight * mapZoom.scale)),
+  };
+}
+
+function zoomMapAt(event) {
+  if (ui.pinPopup.contains(event.target)) return;
+  if (!ui.map.classList.contains('has-image')) return;
+  event.preventDefault();
+  const bounds = ui.map.getBoundingClientRect();
+  const pointerX = event.clientX - bounds.left - ui.map.clientLeft;
+  const pointerY = event.clientY - bounds.top - ui.map.clientTop;
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? ui.map.clientHeight : 1;
+  const delta = Math.max(-240, Math.min(240, event.deltaY * unit));
+  const scale = Math.max(1, Math.min(5, mapZoom.scale * Math.exp(-delta * 0.0015)));
+  if (scale === mapZoom.scale) return;
+  const ratio = scale / mapZoom.scale;
+  mapZoom = {
+    scale,
+    x: Math.max(ui.map.clientWidth * (1 - scale), Math.min(0, pointerX - (pointerX - mapZoom.x) * ratio)),
+    y: Math.max(ui.map.clientHeight * (1 - scale), Math.min(0, pointerY - (pointerY - mapZoom.y) * ratio)),
+  };
+  applyMapZoom();
+  closePinPopup();
+}
+
 function useMap(name = ui.mapName.value) {
   const cleaned = String(name).trim().slice(0, 80);
   if (!cleaned) { ui.mapName.focus(); return; }
+  closePinPopup();
   currentMap = cleaned;
   ui.mapName.value = cleaned;
   data.currentMap = cleaned;
   data.maps[cleaned] ||= { image: null };
   draftPosition = null;
+  clearSpiderPins();
+  clearPinHover();
+  mapZoom = { scale: 1, x: 0, y: 0 };
+  applyMapZoom();
   persist();
   render();
 }
@@ -109,7 +412,7 @@ function render() {
   const mapData = currentMap && data.maps[currentMap];
   const image = mapData?.image;
   ui.map.classList.toggle('has-image', Boolean(image));
-  ui.map.style.backgroundImage = image ? `url("${image}")` : '';
+  ui.mapContent.style.backgroundImage = image ? `url("${image}")` : '';
   ui.map.style.aspectRatio = image ? String(mapData.ratio || 16 / 9) : '';
   const preset = presetForMap(mapData);
   ui.mapCredit.hidden = !preset;
@@ -121,26 +424,88 @@ function render() {
   ui.map.querySelector('.map-placeholder').hidden = Boolean(image);
   ui.pins.replaceChildren();
   const finds = data.finds.filter(find => find.map === currentMap);
-  for (const find of finds) {
+  for (const find of ui.showPersonal.checked ? finds : []) {
     const pin = document.createElement('button');
-    pin.className = 'pin'; pin.type = 'button';
+    const rarity = rarityForBlueprint(find.name);
+    pin.className = `pin${rarity ? ` rarity-${rarity.id}` : ''}`; pin.type = 'button';
     pin.dataset.pinKind = 'find'; pin.dataset.pinId = find.id;
+    pin.dataset.foundAt = find.foundAt; pin.dataset.source = 'My find';
+    markPinForHover(pin, `find:${find.id}`, find);
     pin.style.left = `${find.x * 100}%`; pin.style.top = `${find.y * 100}%`;
-    pin.title = `${find.name} · ${new Date(find.foundAt).toLocaleString()}`;
+    pin.title = `${find.name} · ${rarity ? `${rarity.label} (estimated find rarity)` : 'Rarity not rated'} · ${new Date(find.foundAt).toLocaleString()}`;
     pin.setAttribute('aria-label', pin.title);
     const pinLabel = document.createElement('span'); pinLabel.className = 'pin-label'; pinLabel.textContent = find.name;
     pin.append(pinLabel);
     pin.addEventListener('click', event => {
       event.stopPropagation();
+      editingMapPin = false;
       ui.coordinates.textContent = `${find.name} · ${Math.round(find.x * 100)}%, ${Math.round(find.y * 100)}%`;
       selectedMapPin = { kind: 'find', id: find.id };
       renderPinPopup(true);
     });
     ui.pins.append(pin);
   }
+  const minimum = Number(ui.communityScore.value) || 0;
+  const after = ui.communityAfter.value ? Date.parse(`${ui.communityAfter.value}T00:00:00`) : 0;
+  let communityVisible = 0;
+  const communityItems = [];
+  if (ui.showCommunity.checked) for (const player of community.players) {
+    if (ui.communityPlayer.value && player.name.toLowerCase() !== ui.communityPlayer.value) continue;
+    for (const [index, find] of player.finds.entries()) {
+      if (find.map !== currentMap || find.score < minimum || Date.parse(find.foundAt) < after) continue;
+      communityVisible++;
+      const pin = document.createElement('button'); pin.type = 'button';
+      const rarity = rarityForBlueprint(find.name);
+      pin.className = `pin community-pin${rarity ? ` rarity-${rarity.id}` : ''}`;
+      pin.dataset.pinKind = 'community'; pin.dataset.foundAt = find.foundAt; pin.dataset.source = player.name;
+      markPinForHover(pin, `community:${player.name.toLowerCase()}:${index}`, find);
+      pin.style.left = `${find.x * 100}%`; pin.style.top = `${find.y * 100}%`;
+      pin.title = `${find.name} · ${player.name} · reliability ${find.score}/100 · ${new Date(find.foundAt).toLocaleString()}`;
+      pin.setAttribute('aria-label', pin.title);
+      const label = document.createElement('span'); label.className = 'pin-label'; label.textContent = find.name;
+      pin.append(label);
+      pin.addEventListener('click', event => {
+        event.stopPropagation(); selectedMapPin = null; editingMapPin = false;
+        groupChooserOpen = false; ui.pinPopupChoices.hidden = true;
+        ui.pinPopupTitle.textContent = find.name; ui.pinPopupStatus.textContent = `Community find · ${player.name}`;
+        ui.pinPopupImage.hidden = true; ui.pinPopupEdit.hidden = true; ui.pinPopupForm.hidden = true; ui.pinPopupDetails.hidden = false;
+        ui.pinPopupDetails.replaceChildren();
+        for (const [key, value] of [['Map', find.map], ['Found', new Date(find.foundAt).toLocaleString()],
+          ['Reliability', `${find.score}/100 · ${find.method}`], ['Name from', find.source || 'Unspecified'],
+          ['Location', `${Math.round(find.x * 100)}% across, ${Math.round(find.y * 100)}% down`]]) {
+          const term = document.createElement('dt'); term.textContent = key;
+          const description = document.createElement('dd'); description.textContent = value;
+          ui.pinPopupDetails.append(term, description);
+        }
+        ui.pinPopup.hidden = false;
+        const bounds = ui.map.getBoundingClientRect();
+        const anchor = pinPopupAnchor(pin.dataset.hoverKey, find);
+        ui.pinPopup.style.left = `${Math.max(8, Math.min(anchor.x + 16, bounds.width - ui.pinPopup.offsetWidth - 8))}px`;
+        ui.pinPopup.style.top = `${Math.max(8, Math.min(anchor.y + 16, bounds.height - ui.pinPopup.offsetHeight - 8))}px`;
+        ui.pinPopup.focus({ preventScroll: true });
+      });
+      ui.pins.append(pin);
+      communityItems.push({ find, player, pin });
+    }
+  }
+  communityItems.sort((a, b) => ui.communitySort.value === 'newest'
+    ? Date.parse(b.find.foundAt) - Date.parse(a.find.foundAt)
+    : b.find.score - a.find.score || Date.parse(b.find.foundAt) - Date.parse(a.find.foundAt));
+  ui.communityList.replaceChildren();
+  for (const { find, player, pin } of communityItems.slice(0, 100)) {
+    const item = document.createElement('li');
+    const button = document.createElement('button'); button.type = 'button';
+    button.textContent = `${find.name} · ${player.name} · ${find.score}/100 · ${new Date(find.foundAt).toLocaleDateString()}`;
+    button.addEventListener('click', () => pin.click()); item.append(button); ui.communityList.append(item);
+  }
+  ui.communityCount.textContent = community.importedAt
+    ? `${community.players.length} players imported · ${communityVisible} shown on this map`
+    : 'No community CSV imported.';
   for (const sighting of data.sightings.filter(entry => !entry.dismissed && !entry.savedFindId && entry.position && entry.map === currentMap)) {
     const pin = document.createElement('button'); pin.type = 'button'; pin.className = 'pin sighting-pin';
     pin.dataset.pinKind = 'sighting'; pin.dataset.pinId = sighting.id;
+    pin.dataset.foundAt = sighting.seenAt; pin.dataset.source = 'Sighting awaiting review';
+    markPinForHover(pin, `sighting:${sighting.id}`, sighting.position);
     pin.style.left = `${sighting.position.x * 100}%`; pin.style.top = `${sighting.position.y * 100}%`;
     pin.title = `${sighting.name} · location captured ${new Date(sighting.seenAt).toLocaleString()} · awaiting name or review`;
     pin.setAttribute('aria-label', pin.title);
@@ -148,6 +513,7 @@ function render() {
     pin.append(label);
     pin.addEventListener('click', event => {
       event.stopPropagation();
+      editingMapPin = false;
       selectedSightingId = sighting.id;
       selectedMapPin = { kind: 'sighting', id: sighting.id };
       ui.blueprintName.value = sighting.name === unidentifiedBlueprint ? '' : sighting.name;
@@ -159,6 +525,8 @@ function render() {
     ui.pins.append(pin);
   }
   ui.draftPin.hidden = !draftPosition;
+  if (hoveredPinKey && ![...ui.pins.children].some(pin => pin.dataset.hoverKey === hoveredPinKey)) clearPinHover();
+  layoutSpiderPins();
   if (draftPosition) {
     ui.draftPin.style.left = `${draftPosition.x * 100}%`;
     ui.draftPin.style.top = `${draftPosition.y * 100}%`;
@@ -167,12 +535,20 @@ function render() {
   ui.save.disabled = !(currentMap && ui.blueprintName.value.trim() && draftPosition);
   ui.count.textContent = String(finds.length);
   ui.list.replaceChildren();
-  for (const find of [...finds].reverse()) {
+  for (const find of [...(ui.showPersonal.checked ? finds : [])].reverse()) {
     const item = document.createElement('li');
     const description = document.createElement('span'); description.className = 'find-text';
     const name = document.createElement('strong'); name.textContent = find.name;
-    const details = document.createElement('small'); details.textContent = `${new Date(find.foundAt).toLocaleString()}${find.accuracy ? ` · ${find.accuracy}` : ''}`;
+    const rarity = rarityForBlueprint(find.name);
+    const relatedSighting = data.sightings.find(entry => entry.id === find.sightingId || entry.savedFindId === find.id);
+    const reliability = reliabilityForFind(find, relatedSighting);
+    const details = document.createElement('small'); details.textContent = `${rarity?.label || 'Rarity not rated'} · Reliability ${reliability.score}/100 · ${new Date(find.foundAt).toLocaleString()}${find.accuracy ? ` · ${find.accuracy}` : ''}`;
     description.append(name, details);
+    const shareLabel = document.createElement('label'); shareLabel.className = 'share-find';
+    const shareCheck = document.createElement('input'); shareCheck.type = 'checkbox'; shareCheck.checked = shareApproved(find);
+    shareCheck.setAttribute('aria-label', `Share ${find.name}`);
+    shareCheck.addEventListener('change', () => { find.shareApproved = shareCheck.checked; persist(); });
+    shareLabel.append(shareCheck, document.createTextNode('Share'));
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'icon-btn';
     remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${find.name}`);
     remove.addEventListener('click', () => {
@@ -181,13 +557,15 @@ function render() {
       if (sighting) sighting.savedFindId = null;
       persist(); render();
     });
-    item.append(description, remove); ui.list.append(item);
+    item.append(description, shareLabel, remove); ui.list.append(item);
   }
   renderSightings();
   renderPinPopup();
 }
 
 function renderPinPopup(focus = false) {
+  if (groupChooserOpen) return;
+  ui.pinPopupChoices.hidden = true;
   const find = selectedMapPin?.kind === 'find' && data.finds.find(entry => entry.id === selectedMapPin.id && entry.map === currentMap);
   const sighting = selectedMapPin?.kind === 'sighting'
     ? data.sightings.find(entry => entry.id === selectedMapPin.id && !entry.dismissed && !entry.savedFindId && entry.map === currentMap)
@@ -195,20 +573,27 @@ function renderPinPopup(focus = false) {
   const entry = find || sighting;
   if (!entry) {
     selectedMapPin = null;
+    editingMapPin = false;
     ui.pinPopup.hidden = true;
     return;
   }
   const position = find || sighting.position;
   const date = new Date(find?.foundAt || sighting.seenAt);
   const timestamp = Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString();
+  const reliability = find && reliabilityForFind(find, sighting);
   ui.pinPopupStatus.textContent = find ? 'Saved find' : 'Location awaiting review';
   ui.pinPopupTitle.textContent = entry.name;
+  ui.pinPopupDetails.hidden = editingMapPin;
+  ui.pinPopupEdit.hidden = editingMapPin;
+  ui.pinPopupForm.hidden = !editingMapPin;
   ui.pinPopupImage.hidden = !sighting?.tilePreview;
   if (sighting?.tilePreview) ui.pinPopupImage.src = sighting.tilePreview;
   ui.pinPopupDetails.replaceChildren();
   const details = [
     ['Map', entry.map],
     ['Found', timestamp],
+    ...(find ? [['Find rarity', rarityForBlueprint(find.name)?.label || 'Not rated']] : []),
+    ...(find ? [['Reliability', `${reliability.score}/100 · ${reliability.method}`]] : []),
     ['Location', `${Math.round(position.x * 100)}% across, ${Math.round(position.y * 100)}% down`],
     ['Accuracy', find?.accuracy || (sighting?.confidence ? `${Math.round(sighting.confidence * 100)}% map image match` : 'Approximate map position')],
   ];
@@ -223,8 +608,7 @@ function renderPinPopup(focus = false) {
   const mapBounds = ui.map.getBoundingClientRect();
   const width = ui.pinPopup.offsetWidth;
   const height = ui.pinPopup.offsetHeight;
-  const anchorX = position.x * mapBounds.width;
-  const anchorY = position.y * mapBounds.height;
+  const { x: anchorX, y: anchorY } = pinPopupAnchor(`${selectedMapPin.kind}:${selectedMapPin.id}`, position);
   const left = Math.max(8, Math.min(anchorX + 16, mapBounds.width - width - 8));
   const preferredTop = anchorY + height + 16 > mapBounds.height ? anchorY - height - 16 : anchorY + 16;
   const top = Math.max(8, Math.min(preferredTop, mapBounds.height - height - 8));
@@ -236,6 +620,9 @@ function renderPinPopup(focus = false) {
 function closePinPopup(focusPin = false) {
   const previous = selectedMapPin;
   selectedMapPin = null;
+  editingMapPin = false;
+  groupChooserOpen = false;
+  ui.pinPopupChoices.hidden = true;
   ui.pinPopup.hidden = true;
   if (focusPin && previous) {
     const pin = [...ui.pins.children].find(entry => entry.dataset.pinKind === previous.kind && entry.dataset.pinId === previous.id);
@@ -243,9 +630,74 @@ function closePinPopup(focusPin = false) {
   }
 }
 
+function startPinEdit() {
+  if (!selectedMapPin) return;
+  const find = selectedMapPin.kind === 'find' && data.finds.find(entry => entry.id === selectedMapPin.id);
+  const sighting = !find && data.sightings.find(entry => entry.id === selectedMapPin.id);
+  const entry = find || sighting;
+  const position = find || sighting?.position;
+  if (!entry || !position) return;
+  ui.pinEditName.value = entry.name === unidentifiedBlueprint ? '' : entry.name;
+  ui.pinEditMap.replaceChildren();
+  for (const name of Object.keys(data.maps)) {
+    const option = document.createElement('option'); option.value = name; option.textContent = name;
+    ui.pinEditMap.append(option);
+  }
+  ui.pinEditMap.value = entry.map;
+  ui.pinEditX.value = String(Math.round(position.x * 1000) / 10);
+  ui.pinEditY.value = String(Math.round(position.y * 1000) / 10);
+  editingMapPin = true;
+  renderPinPopup();
+  ui.pinEditName.focus({ preventScroll: true });
+}
+
+function savePinEdit(event) {
+  event.preventDefault();
+  const find = selectedMapPin?.kind === 'find' && data.finds.find(entry => entry.id === selectedMapPin.id);
+  const sighting = selectedMapPin?.kind === 'sighting'
+    ? data.sightings.find(entry => entry.id === selectedMapPin.id && !entry.dismissed && !entry.savedFindId)
+    : find && data.sightings.find(entry => entry.id === find.sightingId || entry.savedFindId === find.id);
+  const entry = find || sighting;
+  if (!entry || !ui.pinPopupForm.reportValidity()) return;
+  const name = ui.pinEditName.value.trim();
+  const map = ui.pinEditMap.value;
+  const x = Number(ui.pinEditX.value) / 100;
+  const y = Number(ui.pinEditY.value) / 100;
+  if (!name || !data.maps[map] || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
+  entry.name = name;
+  entry.map = map;
+  if (find) {
+    find.x = x; find.y = y;
+    find.nameSource = 'user edited';
+  } else {
+    sighting.position = { x, y };
+    sighting.nameSource = 'user edited';
+  }
+  if (find && sighting) {
+    sighting.name = name;
+    sighting.map = map;
+    sighting.position = { x, y };
+    sighting.nameSource = 'user edited';
+  }
+  if (sighting && selectedSightingId === sighting.id) {
+    ui.blueprintName.value = name;
+    draftPosition = !sighting.savedFindId && map === currentMap ? sighting.position : null;
+  }
+  editingMapPin = false;
+  if (map !== currentMap) selectedMapPin = null;
+  persist(); render();
+  setStatus(`Updated ${name}${map !== currentMap ? ` on ${map}` : ''}.`, Boolean(mediaStream));
+}
+
 function renderSightings() {
   ui.sightingCount.textContent = String(data.sightings.filter(sighting => !sighting.dismissed).length);
   ui.sightingList.replaceChildren();
+  ui.reviewedList.replaceChildren();
+  const reviewed = data.sightings.filter(sighting => sighting.dismissed);
+  ui.reviewedCount.textContent = String(reviewed.length);
+  ui.reviewedSightings.hidden = reviewed.length === 0 && data.dismissedTiles.length === 0;
+  ui.forgetDismissed.hidden = data.dismissedTiles.length === 0;
+  ui.forgetDismissed.textContent = `Forget ${data.dismissedTiles.length} saved false-alert example${data.dismissedTiles.length === 1 ? '' : 's'}`;
   for (const sighting of data.sightings) {
     const item = document.createElement('li');
     const button = document.createElement('button'); button.type = 'button'; button.className = 'sighting-select';
@@ -265,6 +717,12 @@ function renderSightings() {
     review.textContent = sighting.dismissed ? 'Restore' : 'Not a blueprint';
     review.addEventListener('click', () => {
       sighting.dismissed = !sighting.dismissed;
+      sighting.suppressRepeat = sighting.dismissed;
+      data.dismissedTiles = data.dismissedTiles.filter(entry => entry.id !== sighting.id);
+      if (sighting.dismissed && sighting.tilePreview) {
+        data.dismissedTiles.push({ id: sighting.id, tilePreview: sighting.tilePreview });
+        data.dismissedTiles = data.dismissedTiles.slice(-32);
+      }
       if (sighting.dismissed && sighting.savedFindId) {
         const find = data.finds.find(entry => entry.id === sighting.savedFindId);
         if (find?.autoGenerated) {
@@ -275,7 +733,8 @@ function renderSightings() {
       if (sighting.dismissed && selectedSightingId === sighting.id) selectedSightingId = null;
       persist(); render();
     });
-    item.append(button, review); ui.sightingList.append(item);
+    item.append(button, review);
+    (sighting.dismissed ? ui.reviewedList : ui.sightingList).append(item);
   }
   const selected = data.sightings.find(sighting => sighting.id === selectedSightingId);
   ui.sightingPreview.hidden = !selected?.frame;
@@ -350,7 +809,8 @@ async function recognizeSightingIcon(sighting, frame, tile) {
 }
 
 async function reviewStoredSightingIcon(sighting) {
-  if (sighting.name !== unidentifiedBlueprint || !sighting.tilePreview || sighting.iconCandidates?.length) return;
+  // Candidate rankings may be stale after new labeled references are added.
+  if (sighting.name !== unidentifiedBlueprint || !sighting.tilePreview || sighting.dismissed) return;
   try {
     const image = new Image(); image.src = sighting.tilePreview; await image.decode();
     const match = await identifyBlueprintPreview(image);
@@ -381,18 +841,42 @@ function desktopAlert(title, body, blueprintImage) {
   catch { /* Sightings remain available in the tracker. */ }
 }
 
-function recordSighting(name, frame, tile = null) {
+function cachedSignature(sighting) {
+  if (!sighting.tilePreview) return null;
+  if (!signatureCache.has(sighting.id)) signatureCache.set(sighting.id, tileSignature(sighting.tilePreview));
+  return signatureCache.get(sighting.id);
+}
+
+async function matchesDismissedTile(current) {
+  for (const sighting of data.dismissedTiles) {
+    try {
+      if (tileSimilarity(current, await cachedSignature(sighting)) >= 0.96) return true;
+    } catch { /* An unreadable old preview cannot veto a new sighting. */ }
+  }
+  return false;
+}
+
+async function recordSighting(name, frame, tile = null, targetSighting = null) {
   const now = Date.now();
   const windowMs = name === unidentifiedBlueprint ? 90 * 1000 : 5 * 60 * 1000;
-  const recent = data.sightings.find(sighting => !sighting.dismissed && sighting.name.toLowerCase() === name.toLowerCase() && now - Date.parse(sighting.seenAt) < windowMs);
-  if (recent) return false;
+  const tilePreview = blueprintTilePreview(frame, tile);
+  const recent = data.sightings.filter(sighting => !sighting.dismissed &&
+    sighting.name.toLowerCase() === name.toLowerCase() && now - Date.parse(sighting.seenAt) < windowMs);
+  if (name === unidentifiedBlueprint) {
+    if (!tilePreview || recent.some(sighting => !sighting.tilePreview)) return false;
+    const signature = await tileSignature(tilePreview);
+    for (const sighting of recent) {
+      if (tileSimilarity(signature, await cachedSignature(sighting)) >= 0.96) return false;
+    }
+    if (await matchesDismissedTile(signature)) return false;
+  }
   const snapshot = document.createElement('canvas');
   const scale = Math.min(1, 960 / frame.width);
   snapshot.width = Math.round(frame.width * scale); snapshot.height = Math.round(frame.height * scale);
   snapshot.getContext('2d').drawImage(frame, 0, 0, snapshot.width, snapshot.height);
-  const unnamed = name !== unidentifiedBlueprint && data.sightings.find(sighting =>
+  const unnamed = targetSighting || (name !== unidentifiedBlueprint && data.sightings.find(sighting =>
     !sighting.dismissed && (sighting.name === unidentifiedBlueprint || sighting.nameSource === 'catalog icon') &&
-    !sighting.savedFindId && now - Date.parse(sighting.seenAt) < 60 * 1000);
+    !sighting.savedFindId && now - Date.parse(sighting.seenAt) < 60 * 1000));
   if (unnamed) {
     unnamed.name = name;
     unnamed.nameSource = 'OCR';
@@ -402,8 +886,9 @@ function recordSighting(name, frame, tile = null) {
     persist(); render();
     return true;
   }
+  if (name !== unidentifiedBlueprint && recent.length) return false;
   const sighting = { id: crypto.randomUUID(), name, seenAt: new Date(now).toISOString(), frame: snapshot.toDataURL('image/jpeg', 0.55),
-    tilePreview: blueprintTilePreview(frame, tile), nameSource: name === unidentifiedBlueprint ? null : 'OCR', savedFindId: null };
+    tilePreview, nameSource: name === unidentifiedBlueprint ? null : 'OCR', savedFindId: null };
   data.sightings.unshift(sighting);
   data.sightings.length = Math.min(data.sightings.length, 12);
   selectedSightingId = sighting.id;
@@ -516,13 +1001,15 @@ async function scanVisualFrame() {
     const frame = takeFrame(false);
     if (!frame) return;
     const image = frame.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, frame.width, frame.height);
-    const tiles = detectBlueprintTiles(image, 'CONTAINER LOADOUT');
-    const firstNewTile = tiles.find(tile => !visibleBlueprintSlots.has(tile.slot));
-    visibleBlueprintSlots = new Set(tiles.map(tile => tile.slot));
-    if (firstNewTile && recordSighting(unidentifiedBlueprint, frame, firstNewTile)) {
-      recognizeSightingIcon(data.sightings[0], frame, firstNewTile);
+    const panelVisible = isLootPanelVisible(image);
+    const tiles = panelVisible ? detectBlueprintTiles(image, 'CONTAINER LOADOUT') : [];
+    const freshSlots = lootWindow.observe(panelVisible, tiles.map(tile => tile.slot), Date.now());
+    const newTiles = tiles.filter(tile => freshSlots.includes(tile.slot));
+    for (const tile of newTiles) {
+      if (!await recordSighting(unidentifiedBlueprint, frame, tile)) continue;
+      recognizeSightingIcon(data.sightings[0], frame, tile);
       ui.pinHelp.textContent = 'Blueprint tile seen. Hover for its name and open the in-game map soon to locate it.';
-      setStatus(`Blueprint-like tile in container slot ${firstNewTile.slot}`, true);
+      setStatus(`Blueprint-like tile in container slot ${tile.slot}`, true);
     }
     const mapVisible = isArcMapView(frame);
     if (!mapVisible || !mapWasOpen) mapSessionMatched = false;
@@ -566,15 +1053,18 @@ async function scanOnce() {
     const frame = takeFrame(false);
     if (!frame) return;
     const ocr = await ensureWorker();
-    const result = await ocr.recognize(frame);
+    const result = await ocr.recognize(cropBlueprintName(frame));
     const text = result.data.text || '';
     ui.ocrText.textContent = text.trim() || '(No readable text)';
     ui.lastScan.textContent = `Last scanned ${new Date().toLocaleTimeString()}`;
     const candidate = blueprintFromText(text);
     let message = 'Watching game window';
-    if (candidate && (candidate !== lastCandidate || Date.now() - lastCandidateAt > 30000)) {
-      lastCandidate = candidate; lastCandidateAt = Date.now();
-      recordSighting(candidate, frame);
+    const pendingTile = data.sightings.find(sighting => !sighting.dismissed && !sighting.savedFindId &&
+      (sighting.name === unidentifiedBlueprint || sighting.nameSource === 'catalog icon') && sighting.tilePreview &&
+      Date.now() - Date.parse(sighting.seenAt) < 60 * 1000);
+    if (candidate && pendingTile && (candidate !== lastCandidate || pendingTile.id !== lastCandidateSightingId)) {
+      lastCandidate = candidate; lastCandidateSightingId = pendingTile.id;
+      await recordSighting(candidate, frame, null, pendingTile);
       if (!ui.blueprintName.value.trim()) {
         ui.blueprintName.value = candidate;
         message = `Possible blueprint: ${candidate}`;
@@ -620,7 +1110,7 @@ async function startCapture() {
     track.addEventListener('ended', () => stopCapture('Sharing ended. Select Start capture to choose a screen again.'), { once: true });
     ui.start.disabled = true; ui.stop.disabled = false;
     setStatus(surface === 'browser' ? 'A browser tab is shared. Choose the game window or Entire Screen.' : 'Capture is live; watching for blueprints.', true);
-    visualTimer = setInterval(scanVisualFrame, 1000);
+    visualTimer = setInterval(scanVisualFrame, 500);
     scanVisualFrame();
     scanOnce();
   } catch (error) {
@@ -635,6 +1125,7 @@ function stopCapture(message = 'Capture stopped') {
   clearInterval(visualTimer);
   const oldStream = mediaStream; mediaStream = null;
   mapWasOpen = false; mapSessionMatched = false;
+  lootWindow.reset();
   oldStream?.getTracks().forEach(track => track.stop());
   if (video) { video.srcObject = null; video = null; }
   ui.previewPanel.hidden = true;
@@ -674,11 +1165,74 @@ ui.screenshotFinds.addEventListener('click', () => {
   setStatus(added ? `Added ${added} approximate screenshot finds. Review their positions.` : 'The supplied screenshot finds are already on this map.');
 });
 ui.mapName.addEventListener('keydown', event => { if (event.key === 'Enter') chooseNamedMap(); });
-ui.map.addEventListener('click', event => { closePinPopup(); setDraft(positionFromEvent(event, ui.map)); });
+ui.map.addEventListener('click', event => { closePinPopup(); setDraft(positionOnZoomedMap(event)); });
+ui.map.addEventListener('wheel', zoomMapAt, { passive: false });
+ui.map.addEventListener('pointermove', onMapPointerMove);
+ui.pins.addEventListener('click', event => {
+  if (choosingGroupMember) return;
+  const pin = pinFromPointerTarget(event.target);
+  if (!pin) return;
+  const group = expandedPins?.groups?.find(entry => entry.representativeKey === pin.dataset.hoverKey && entry.members.length > 1);
+  if (group) {
+    event.preventDefault(); event.stopPropagation();
+    showGroupChooser(group);
+  } else {
+    groupChooserOpen = false;
+    ui.pinPopupChoices.hidden = true;
+  }
+}, true);
+ui.pins.addEventListener('pointerover', event => {
+  const pin = pinFromPointerTarget(event.target);
+  if (!pin || pin.contains(event.relatedTarget)) return;
+  clearTimeout(pinExitTimer);
+  clearTimeout(pinEnterTimer);
+  const key = pin.dataset.hoverKey;
+  if (key === hoveredPinKey) return;
+  pendingPinKey = key;
+  pinEnterTimer = setTimeout(() => {
+    if (pendingPinKey !== key) return;
+    const current = [...ui.pins.children].find(entry => entry.dataset.hoverKey === key);
+    if (!current) return;
+    for (const entry of ui.pins.children) entry.classList.remove('hover-stable');
+    hoveredPinKey = key;
+    current.classList.add('hover-stable');
+  }, 140);
+});
+ui.pins.addEventListener('pointerout', event => {
+  const pin = pinFromPointerTarget(event.target);
+  if (!pin || pin.contains(event.relatedTarget)) return;
+  const key = pin.dataset.hoverKey;
+  if (pendingPinKey === key) { clearTimeout(pinEnterTimer); pendingPinKey = ''; }
+  if (!hoveredPinKey) return;
+  clearTimeout(pinExitTimer);
+  pinExitTimer = setTimeout(() => {
+    if (hoveredPinKey === key || pendingPinKey === '') clearPinHover();
+  }, 220);
+});
+ui.map.addEventListener('pointerleave', () => {
+  clearTimeout(pinEnterTimer);
+  pendingPinKey = '';
+  scheduleSpiderClose();
+  if (!hoveredPinKey) return;
+  clearTimeout(pinExitTimer);
+  pinExitTimer = setTimeout(clearPinHover, 220);
+});
+new ResizeObserver(() => {
+  if (mapZoom.scale === 1) return;
+  mapZoom = { scale: 1, x: 0, y: 0 };
+  applyMapZoom();
+  closePinPopup();
+}).observe(ui.map);
 ui.pinPopup.addEventListener('click', event => event.stopPropagation());
 ui.pinPopupClose.addEventListener('click', () => closePinPopup(true));
+ui.pinPopupEdit.addEventListener('click', startPinEdit);
+ui.pinPopupForm.addEventListener('submit', savePinEdit);
+ui.pinEditCancel.addEventListener('click', () => { editingMapPin = false; renderPinPopup(); ui.pinPopupEdit.focus({ preventScroll: true }); });
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !ui.pinPopup.hidden) closePinPopup(true);
+  if (event.key === 'Escape' && !ui.pinPopup.hidden) {
+    if (editingMapPin) { editingMapPin = false; renderPinPopup(); ui.pinPopupEdit.focus({ preventScroll: true }); }
+    else closePinPopup(true);
+  }
 });
 window.addEventListener('resize', () => { if (!ui.pinPopup.hidden) renderPinPopup(); });
 ui.blueprintName.addEventListener('input', render);
@@ -789,6 +1343,62 @@ ui.export.addEventListener('click', () => {
   link.download = `arc-blueprint-map-${new Date().toISOString().slice(0, 10)}.json`;
   link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 });
+ui.gameName.value = localStorage.getItem('arc-blueprint-game-name') || '';
+ui.gameName.addEventListener('change', () => localStorage.setItem('arc-blueprint-game-name', ui.gameName.value.trim()));
+ui.readGameName.addEventListener('click', async () => {
+  const frame = takeFrame(false);
+  if (!frame) return;
+  try {
+    const crop = document.createElement('canvas');
+    const sourceWidth = Math.round(frame.width * 0.22);
+    const sourceHeight = Math.round(frame.height * 0.075);
+    crop.width = sourceWidth * 3; crop.height = sourceHeight * 3;
+    crop.getContext('2d').drawImage(frame, frame.width - sourceWidth, 0, sourceWidth, sourceHeight, 0, 0, crop.width, crop.height);
+    if (!window.Tesseract) throw new Error('OCR is unavailable. Type your game name above.');
+    const nameWorker = await window.Tesseract.createWorker('eng', 1, {
+      workerPath: '/vendor/worker.min.js', corePath: '/vendor/tesseract-core-simd-lstm.wasm.js', langPath: '/vendor',
+    });
+    let result;
+    try {
+      await nameWorker.setParameters({ tessedit_pageseg_mode: '7' });
+      result = await nameWorker.recognize(crop);
+    } finally { await nameWorker.terminate(); }
+    const words = (result.data.text || '').match(/[A-Za-z][A-Za-z0-9_]{2,39}/g) || [];
+    const name = words.at(-1);
+    if (!name) throw new Error('No game name was readable. Type it above.');
+    ui.gameName.value = name;
+    localStorage.setItem('arc-blueprint-game-name', name);
+    setStatus(`Name read as ${name}. Check it before sharing.`, Boolean(mediaStream));
+  } catch (error) { setStatus(error.message); }
+});
+ui.shareBlueprints.addEventListener('click', async () => {
+  try {
+    const payload = buildSharePayload(ui.gameName.value, data.finds.filter(shareApproved), data.sightings);
+    if (!payload.finds.length) throw new Error('Save a confirmed blueprint find before sharing.');
+    localStorage.setItem('arc-blueprint-game-name', payload.gameName);
+    const json = JSON.stringify(payload);
+    ui.shareJson.value = json; ui.shareJson.hidden = false;
+    try { await navigator.clipboard.writeText(json); }
+    catch { ui.shareJson.focus(); ui.shareJson.select(); }
+    window.open(prefilledFormUrl(payload.gameName), '_blank', 'noopener');
+    setStatus(`${payload.finds.length} finds ready. Your name is filled in; paste Blueprint JSON into the Form.`);
+  } catch (error) { setStatus(error.message); }
+});
+ui.communityImport.addEventListener('change', async () => {
+  try {
+    const imported = importCommunityCsv(await ui.communityImport.files[0].text());
+    const next = { ...imported, importedAt: new Date().toISOString() };
+    localStorage.setItem(COMMUNITY_STORAGE_KEY, JSON.stringify(next));
+    community = next;
+    ui.communityPlayer.replaceChildren(new Option('All players', ''));
+    for (const player of community.players) ui.communityPlayer.add(new Option(player.name, player.name.toLowerCase()));
+    render(); setStatus(`Imported ${community.players.length} player snapshots${imported.rejected ? `; skipped ${imported.rejected} invalid rows` : ''}.`);
+  } catch (error) { setStatus(`Community import failed: ${error.message}`); }
+  ui.communityImport.value = '';
+});
+for (const control of [ui.showPersonal, ui.showCommunity, ui.communityPlayer, ui.communityScore, ui.communityAfter, ui.communitySort]) {
+  control.addEventListener('input', () => { ui.communityScoreValue.value = ui.communityScore.value; render(); });
+}
 ui.import.addEventListener('change', async () => {
   try {
     const imported = JSON.parse(await ui.import.files[0].text());
@@ -801,6 +1411,15 @@ ui.import.addEventListener('change', async () => {
       data.sightings.sort((first, second) => Date.parse(second.seenAt) - Date.parse(first.seenAt));
       data.sightings.length = Math.min(data.sightings.length, 12);
     }
+    const rejected = [
+      ...(Array.isArray(imported.dismissedTiles) ? imported.dismissedTiles : []),
+      ...(Array.isArray(imported.sightings) ? imported.sightings.filter(entry => entry?.dismissed && entry.suppressRepeat !== false) : []),
+    ];
+    for (const entry of rejected) {
+      if (!entry?.id || typeof entry.tilePreview !== 'string' || data.dismissedTiles.some(existing => existing.id === entry.id)) continue;
+      data.dismissedTiles.push({ id: entry.id, tilePreview: entry.tilePreview });
+    }
+    data.dismissedTiles = data.dismissedTiles.slice(-32);
     for (const [name, map] of Object.entries(imported.maps)) {
       if (!data.maps[name]) data.maps[name] = {
         image: typeof map?.image === 'string' ? map.image : null,
@@ -813,6 +1432,14 @@ ui.import.addEventListener('change', async () => {
   ui.import.value = '';
 });
 
+ui.forgetDismissed.addEventListener('click', () => {
+  data.dismissedTiles = [];
+  for (const sighting of data.sightings) if (sighting.dismissed) sighting.suppressRepeat = false;
+  signatureCache.clear();
+  persist(); render();
+  setStatus('Saved false-alert examples forgotten.');
+});
+
 for (const preset of mapPresets) {
   const option = document.createElement('option');
   option.value = preset.id; option.textContent = preset.name;
@@ -820,6 +1447,7 @@ for (const preset of mapPresets) {
 }
 ui.mapName.value = currentMap;
 ui.presetMap.value = presetForMap(data.maps[currentMap])?.id || 'stella-upper';
+for (const player of community.players) ui.communityPlayer.add(new Option(player.name, player.name.toLowerCase()));
 updateAlertPermission();
 render();
 

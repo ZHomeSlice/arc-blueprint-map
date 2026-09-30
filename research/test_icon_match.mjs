@@ -7,7 +7,8 @@ const cases = [
   ['20260928150336_1.jpg', 2, 'Deadline'],
   ['20260928142439_1.jpg', 1, 'Seeker Grenade'],
   ['20260927195813_1.jpg', 3, null],
-  ['20260927202155_1.jpg', 2, null],
+  ['20260927202155_1.jpg', 2, 'Aphelion'],
+  ['20260928091343_1.jpg', 3, 'Extended Barrel II'],
   ['20260928093759_1.jpg', 3, 'Looting Mk. 3 (Survivor)'],
 ];
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
@@ -43,4 +44,12 @@ try {
     assert.equal(result.preview?.name ?? null, expected, `Stored tile preview: ${file}`);
     assert.equal(result.restoredTile, true, `Stored tile detection: ${file}`);
   }
+  const compactPreview = (await readFile('research/fixtures/ambiguous-blueprint-preview.png')).toString('base64');
+  const ambiguous = await page.evaluate(async encoded => {
+    const { identifyBlueprintPreview, rankBlueprintPreview } = await import('/icon-match.js');
+    const image = new Image(); image.src = `data:image/png;base64,${encoded}`; await image.decode();
+    return { match: await identifyBlueprintPreview(image), ranked: await rankBlueprintPreview(image) };
+  }, compactPreview);
+  assert.equal(ambiguous.match, null, 'Small, ambiguous preview must not be named automatically');
+  assert.deepEqual(ambiguous.ranked.slice(0, 2).map(entry => entry.name).sort(), ['Aphelion', 'Extended Barrel II']);
 } finally { await browser.close(); }
