@@ -1,0 +1,27 @@
+name: Windows portable release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the shareable Windows ZIP
+        shell: pwsh
+        run: ./Build-Shareable.ps1 -Portable
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $archive = Get-ChildItem -Path dist -Filter 'ARC-Blueprint-Map-Windows-x64.zip' -File -Recurse |
+            Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+          if (-not $archive) { throw 'The Windows portable ZIP was not produced.' }
+          gh release create "$env:GITHUB_REF_NAME" "$($archive.FullName)" --generate-notes
