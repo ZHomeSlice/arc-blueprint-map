@@ -24,8 +24,8 @@ Copy-Item -LiteralPath (Join-Path $sourceRoot 'public') -Destination $releaseDir
 
 $nodeArchive = Join-Path $buildDirectory $nodeArchiveName
 $checksums = Join-Path $buildDirectory 'SHASUMS256.txt'
-Invoke-WebRequest -Uri "$nodeBase/$nodeArchiveName" -OutFile $nodeArchive
-Invoke-WebRequest -Uri "$nodeBase/SHASUMS256.txt" -OutFile $checksums
+Invoke-WebRequest -UseBasicParsing -Uri "$nodeBase/$nodeArchiveName" -OutFile $nodeArchive
+Invoke-WebRequest -UseBasicParsing -Uri "$nodeBase/SHASUMS256.txt" -OutFile $checksums
 $checksumLine = Get-Content -LiteralPath $checksums | Where-Object { $_ -match ('\s+' + [regex]::Escape($nodeArchiveName) + '$') } | Select-Object -First 1
 if (-not $checksumLine) { throw 'The official Node.js checksum was not found.' }
 $expectedHash = ($checksumLine -split '\s+')[0].ToUpperInvariant()

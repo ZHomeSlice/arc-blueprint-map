@@ -62,13 +62,11 @@
         <textarea id="share-json" class="share-json" rows="5" readonly hidden aria-label="Blueprint JSON to paste into the Form"></textarea>
         <p class="hint">Check Share beside each confirmed find below. OCR-only automatic pins start unchecked so you can review them first. The share copy contains names, map and floor, positions, dates, and a sortable reliability estimate. It leaves out screenshots and notes.</p>
         <h3>Community finds</h3>
-        <p class="hint"><a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsdODLTK8GpXX_1061l1kk15j4yPDVwURrXOgcZCbxulwiIgsqDSPdUKc87G6xark2ofznSMi3DMB/pub?gid=929643861&amp;single=true&amp;output=csv" target="_blank" rel="noopener noreferrer">Download latest community CSV</a></p>
-        <label class="button full" for="community-import">Import community CSV</label><input type="file" id="community-import" accept=".csv,text/csv" hidden>
-        <div class="row"><label><input id="show-personal" type="checkbox" checked> My finds</label><label><input id="show-community" type="checkbox" checked> Community</label></div>
-        <label for="community-player">Player</label><select id="community-player"><option value="">All players</option></select>
-        <label for="community-score">Minimum reliability: <output id="community-score-value">0</output></label><input id="community-score" type="range" min="0" max="100" value="0">
-        <label for="community-after">Discovered on or after</label><input id="community-after" type="date">
-        <label for="community-sort">Sort community finds</label><select id="community-sort"><option value="reliability">Reliability, highest first</option><option value="newest">Discovery date, newest first</option></select>
+        <div class="community-controls">
+          <p class="hint"><a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsdODLTK8GpXX_1061l1kk15j4yPDVwURrXOgcZCbxulwiIgsqDSPdUKc87G6xark2ofznSMi3DMB/pub?gid=929643861&amp;single=true&amp;output=csv" target="_blank" rel="noopener noreferrer">Download latest community CSV</a></p>
+          <label class="button" for="community-import">Import community CSV</label><input type="file" id="community-import" accept=".csv,text/csv" hidden>
+          <label for="community-sort">Sort community finds</label><select id="community-sort"><option value="reliability">Reliability, highest first</option><option value="newest">Discovery date, newest first</option></select>
+        </div>
         <p class="hint" id="community-count">No community CSV imported.</p>
         <ul id="community-list" class="community-list"></ul>
         <ul id="find-list"></ul>
@@ -82,7 +80,27 @@
       </section>
       <section class="map-panel">
         <div class="panel-heading"><h2 id="current-map-title">Choose a map</h2><span id="pin-coordinates">No pin selected</span></div>
-        <div id="map" class="map"><div id="map-content" class="map-content"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><svg id="pin-spider-lines" class="pin-spider-lines" aria-hidden="true"></svg><div id="pins"></div><div id="draft-pin" class="pin draft" hidden></div></div>
+        <div id="map" class="map"><div id="map-content" class="map-content"><div class="map-placeholder"><div class="crosshair">⌖</div><strong>Your private blueprint map</strong><span>Add a map image, then click to pin a location.</span></div><div id="draft-pin" class="pin draft" hidden></div></div><svg id="pin-spider-lines" class="pin-spider-lines" aria-hidden="true"></svg><div id="pins"></div>
+          <button id="map-filters-toggle" class="map-filter-toggle" type="button" aria-label="Open map filters" aria-haspopup="dialog" aria-expanded="false" title="Map filters">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5z"/></svg><span>Filters</span>
+          </button>
+          <section id="map-filters" class="map-filters" role="dialog" aria-labelledby="map-filters-title" hidden>
+            <h3 id="map-filters-title">Map filters</h3>
+            <div class="map-filter-sources"><label><input id="show-personal" type="checkbox" checked> Personal finds</label><label><input id="show-community" type="checkbox" checked> Community finds</label></div>
+            <label for="map-blueprint-filter">Discovered blueprint</label><select id="map-blueprint-filter"><option value="">All discovered blueprints (0)</option></select>
+            <fieldset class="map-filter-rarities"><legend>Show prints by rarity</legend>
+              <label><input type="checkbox" data-map-filter-rarity="veryCommon" checked><i class="rarity-dot rarity-veryCommon"></i> Very common · gray</label>
+              <label><input type="checkbox" data-map-filter-rarity="common" checked><i class="rarity-dot rarity-common"></i> Common · green</label>
+              <label><input type="checkbox" data-map-filter-rarity="uncommon" checked><i class="rarity-dot rarity-uncommon"></i> Uncommon · blue</label>
+              <label><input type="checkbox" data-map-filter-rarity="rare" checked><i class="rarity-dot rarity-rare"></i> Very rare · purple</label>
+              <label><input type="checkbox" data-map-filter-rarity="extreme" checked><i class="rarity-dot rarity-extreme"></i> Extremely rare · gold</label>
+              <label><input type="checkbox" data-map-filter-rarity="unrated" checked><i class="rarity-dot rarity-unrated"></i> Unrated</label>
+            </fieldset>
+            <label for="community-score">Minimum quality: <output id="community-score-value">0</output>/100</label><input id="community-score" type="range" min="0" max="100" value="0">
+            <label for="community-after">Discovered on or after</label><input id="community-after" type="date">
+            <label for="community-player">Community player</label><select id="community-player"><option value="">All players</option></select>
+            <button id="map-filter-apply" class="primary full" type="button">Apply filters</button>
+          </section>
           <aside id="pin-popup" class="pin-popup" role="dialog" aria-labelledby="pin-popup-title" tabindex="-1" hidden>
             <button id="pin-popup-close" class="pin-popup-close" type="button" aria-label="Close pin details">×</button>
             <span id="pin-popup-status" class="pin-popup-status"></span>
@@ -92,6 +110,11 @@
             <div id="pin-popup-choices" class="pin-popup-choices" hidden></div>
             <button id="pin-popup-edit" type="button">Edit pin</button>
             <form id="pin-popup-form" hidden>
+              <label for="pin-edit-blueprint-search">Choose a blueprint</label>
+              <input id="pin-edit-blueprint-search" type="search" placeholder="Search all blueprints">
+              <p id="pin-edit-blueprint-hint" class="blueprint-picker-hint">Best image matches first; search to choose any catalog blueprint.</p>
+              <div id="pin-edit-blueprint-list" class="blueprint-picker-list" role="listbox" aria-label="Blueprint catalog"></div>
+              <div id="pin-edit-blueprint-preview" class="blueprint-picker-preview" hidden><img alt="Selected blueprint catalog icon"><span></span></div>
               <label for="pin-edit-name">Blueprint name</label><input id="pin-edit-name" maxlength="80" required>
               <label for="pin-edit-map">Map</label><select id="pin-edit-map" required></select>
               <div class="pin-edit-position">
@@ -110,7 +133,7 @@
           <span><i class="rarity-dot rarity-rare"></i>Very rare</span>
           <span><i class="rarity-dot rarity-extreme"></i>Extremely rare</span>
         </div>
-        <p class="hint map-hint">Colors estimate how hard each blueprint is to find, based on reported drops and source restrictions. Exact drop odds are unpublished; unreviewed sightings have a hollow dashed dot. <a href="https://arcraiders.wiki/wiki/Blueprints" target="_blank" rel="noopener noreferrer">Blueprint sources</a> · <a href="https://metaforge.app/arc-raiders/how-to-find-every-blueprint-in-arc-raiders" target="_blank" rel="noopener noreferrer">Farming guide</a></p>
+        <p class="hint map-hint">Colors estimate how hard each blueprint is to find, based on reported drops and source restrictions. Exact drop odds are unpublished; unreviewed sightings have a hollow dashed dot. A star marks your personal finds. <a href="https://arcraiders.wiki/wiki/Blueprints" target="_blank" rel="noopener noreferrer">Blueprint sources</a> · <a href="https://metaforge.app/arc-raiders/how-to-find-every-blueprint-in-arc-raiders" target="_blank" rel="noopener noreferrer">Farming guide</a></p>
         <p class="hint map-hint">Use the mouse wheel to zoom toward the pointer. Hover over stacked dots or names to spread them; lines lead back to each saved spot. A numbered dot combines finds with the same name—click it to choose one to review or edit.</p>
       </section>
       <section class="frame-panel" id="frame-panel" hidden>

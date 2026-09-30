@@ -5,6 +5,11 @@ const widths = [36, 44, 52, 60, 68, 76, 84];
 const centersX = [40, 45, 50, 55, 60];
 const centersY = [30, 36, 42, 48, 54];
 let catalogPromise;
+let catalogEntriesPromise;
+export function loadBlueprintCatalog() {
+  if (!catalogEntriesPromise) catalogEntriesPromise = fetch('/collection-data.json').then(response => response.json());
+  return catalogEntriesPromise;
+}
 const inGameReferences = [
   { name: 'Extended Barrel II', icon: '/icon-references/extended-barrel-ii.png', shape: 'long' },
   { name: 'Aphelion', icon: '/icon-references/aphelion.png', shape: 'long' },
@@ -55,7 +60,7 @@ function templatesFor(image) {
 
 async function catalog() {
   if (!catalogPromise) catalogPromise = (async () => {
-    const entries = await (await fetch('/collection-data.json')).json();
+    const entries = await loadBlueprintCatalog();
     const loaded = await Promise.all(entries.map(async entry => {
       try {
         const image = new Image(); image.src = entry.icon; await image.decode();
@@ -115,7 +120,7 @@ function scoreTemplate(template, target) {
   return best;
 }
 
-async function rankTarget(target) {
+async function rankTarget(target, limit = 3) {
   const matches = [];
   for (const entry of await catalog()) {
     let score = -1;
@@ -152,7 +157,7 @@ async function rankTarget(target) {
     }
   }
   matches.sort((first, second) => second.score - first.score);
-  return matches.slice(0, 3);
+  return matches.slice(0, limit);
 }
 
 export async function rankBlueprintIcons(frame, slot) {
@@ -163,8 +168,8 @@ export async function rankBlueprintIcons(frame, slot) {
     100 * frame.width / 2048, 90 * frame.height / 1152]));
 }
 
-export async function rankBlueprintPreview(preview) {
-  return rankTarget(imageData(preview, 100, 90, [0, 0, preview.width * 100 / 105, preview.height * 90 / 108]));
+export async function rankBlueprintPreview(preview, limit = 3) {
+  return rankTarget(imageData(preview, 100, 90, [0, 0, preview.width * 100 / 105, preview.height * 90 / 108]), limit);
 }
 
 function confidentMatch(matches, minimumMargin = 0.05) {

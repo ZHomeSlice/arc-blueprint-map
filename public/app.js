@@ -1,4 +1,5 @@
-import { blueprintFromText, clamp01, createFind } from './logic.js';
+import { blueprintFromText, clamp01, createFind, deduplicateBlueprintEntries, isOwnCommunityDuplicate,
+  removeRecentDuplicateDiscoveries } from './logic.js';
 import { detectPlayerArrow, isArcMapView, matchMapFrames } from './map-match.js';
 import { matchFullMap, mapPatchAppearance, pointOnFullMap } from './full-map-match.js';
 import { cropMapTitle, mapFamilyFromTitle, selectMapCandidate } from './map-detect.js';
@@ -7,7 +8,7 @@ import { mapPresets, presetForMap, presetForMode, presetMapData } from './map-pr
 import { detectBlueprintTiles, isLootPanelVisible } from './blueprint-visual.js';
 import { LootWindow } from './loot-window.js';
 import { COMMUNITY_STORAGE_KEY, buildSharePayload, importCommunityCsv, prefilledFormUrl, reliabilityForFind } from './community-share.js';
-import { identifyBlueprintIcon, identifyBlueprintPreview, rankBlueprintIcons, rankBlueprintPreview } from './icon-match.js';
+import { identifyBlueprintIcon, identifyBlueprintPreview, loadBlueprintCatalog, rankBlueprintIcons, rankBlueprintPreview } from './icon-match.js';
 import { tileSignature, tileSimilarity } from './tile-feedback.js';
 import { rarityForBlueprint } from './blueprint-rarity.js';
 import { layoutSpiderGroups } from './spider-layout.js';
@@ -22,7 +23,12 @@ const ui = {
   pinPopupStatus: $('pin-popup-status'), pinPopupImage: $('pin-popup-image'), pinPopupDetails: $('pin-popup-details'),
   pinPopupChoices: $('pin-popup-choices'),
   pinPopupEdit: $('pin-popup-edit'), pinPopupForm: $('pin-popup-form'), pinEditName: $('pin-edit-name'),
+  pinEditBlueprintSearch: $('pin-edit-blueprint-search'), pinEditBlueprintList: $('pin-edit-blueprint-list'),
+  pinEditBlueprintPreview: $('pin-edit-blueprint-preview'), pinEditBlueprintHint: $('pin-edit-blueprint-hint'),
   pinEditMap: $('pin-edit-map'), pinEditX: $('pin-edit-x'), pinEditY: $('pin-edit-y'), pinEditCancel: $('pin-edit-cancel'),
+  mapFiltersToggle: $('map-filters-toggle'), mapFilters: $('map-filters'),
+  mapFilterRarities: [...document.querySelectorAll('[data-map-filter-rarity]')], mapBlueprintFilter: $('map-blueprint-filter'),
+  mapFilterApply: $('map-filter-apply'),
   blueprintName: $('blueprint-name'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
   start: $('start-capture'), stop: $('stop-capture'), capturePosition: $('capture-position'), autoLocate: $('auto-locate'), mapScreenshot: $('saved-map-screenshot'),
   previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
@@ -60,6 +66,8 @@ let cachedBaseUrl = '';
 let selectedSightingId = null;
 let selectedMapPin = null;
 let editingMapPin = false;
+let pinEditCandidates = [];
+let pinEditRequestId = 0;
 let mapZoom = { scale: 1, x: 0, y: 0 };
 let hoveredPinKey = '';
 let pendingPinKey = '';
@@ -96,6 +104,10 @@ function loadData() {
         }
       }
       saved.dismissedTiles = saved.dismissedTiles.slice(-32);
+      if (removeRecentDuplicateDiscoveries(saved)) {
+        try { localStorage.setItem(storageKey, JSON.stringify(saved)); }
+        catch { /* The in-memory data is still cleaned up for this session. */ }
+      }
       return saved;
     }
   } catch { /* Ignore damaged local data. */ }
@@ -103,6 +115,7 @@ function loadData() {
 }
 
 function persist() {
+  removeRecentDuplicateDiscoveries(data);
   try { localStorage.setItem(storageKey, JSON.stringify(data)); }
   catch { setStatus('Browser storage is full. Export your finds now.'); }
 }
@@ -110,7 +123,20 @@ function persist() {
 function loadCommunity() {
   try {
     const stored = JSON.parse(localStorage.getItem(COMMUNITY_STORAGE_KEY));
-    if (Array.isArray(stored?.players)) return stored;
+    if (Array.isArray(stored?.players)) {
+      let removed = 0;
+      for (const player of stored.players) {
+        if (!Array.isArray(player.finds)) continue;
+        const previousCount = player.finds.length;
+        player.finds = deduplicateBlueprintEntries(player.finds);
+        removed += previousCount - player.finds.length;
+      }
+      if (removed) {
+        try { localStorage.setItem(COMMUNITY_STORAGE_KEY, JSON.stringify(stored)); }
+        catch { /* Use the cleaned community data in memory if storage is full. */ }
+      }
+      return stored;
+    }
   } catch { /* Import can replace damaged community data. */ }
   return { players: [], importedAt: null };
 }
@@ -224,12 +250,13 @@ function layoutSpiderPins() {
     }
     for (const pin of group.members) {
       const originX = Number(pin.dataset.originX), originY = Number(pin.dataset.originY);
-      points.set(pin.dataset.hoverKey, { origin: mapPoint({ x: originX, y: originY }), target: { x, y } });
+      const origin = mapPoint({ x: originX, y: originY });
+      points.set(pin.dataset.hoverKey, { origin, target: { x, y } });
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', String(originX * width));
-      line.setAttribute('y1', String(originY * height));
-      line.setAttribute('x2', String(contentX));
-      line.setAttribute('y2', String(contentY));
+      line.setAttribute('x1', String(origin.x));
+      line.setAttribute('y1', String(origin.y));
+      line.setAttribute('x2', String(x));
+      line.setAttribute('y2', String(y));
       lines.push(line);
     }
   }
@@ -341,7 +368,9 @@ function onMapPointerMove(event) {
 }
 
 function applyMapZoom() {
-  ui.mapContent.style.transform = `translate(${mapZoom.x}px, ${mapZoom.y}px) scale(${mapZoom.scale})`;
+  const transform = `translate(${mapZoom.x}px, ${mapZoom.y}px) scale(${mapZoom.scale})`;
+  ui.mapContent.style.transform = transform;
+  ui.pins.style.transform = transform;
   ui.map.style.setProperty('--pin-scale', String(1 / mapZoom.scale));
   layoutSpiderPins();
 }
@@ -424,7 +453,38 @@ function render() {
   ui.map.querySelector('.map-placeholder').hidden = Boolean(image);
   ui.pins.replaceChildren();
   const finds = data.finds.filter(find => find.map === currentMap);
-  for (const find of ui.showPersonal.checked ? finds : []) {
+  const blueprintCounts = new Map();
+  const countBlueprint = name => {
+    const label = String(name || '').trim();
+    if (!label) return;
+    const key = label.toLocaleLowerCase();
+    const current = blueprintCounts.get(key);
+    blueprintCounts.set(key, { name: current?.name || label, count: (current?.count || 0) + 1 });
+  };
+  for (const find of finds) countBlueprint(find.name);
+  for (const player of community.players) for (const find of player.finds) {
+    if (find.map === currentMap && !isOwnCommunityDuplicate(player.name, ui.gameName.value, find, data.finds)) countBlueprint(find.name);
+  }
+  for (const sighting of data.sightings) {
+    if (!sighting.dismissed && !sighting.savedFindId && sighting.position && sighting.map === currentMap) countBlueprint(sighting.name);
+  }
+  const selectedBlueprint = ui.mapBlueprintFilter.value;
+  const blueprintOptions = [new Option(`All discovered blueprints (${[...blueprintCounts.values()].reduce((sum, item) => sum + item.count, 0)})`, '')];
+  for (const [key, item] of [...blueprintCounts.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name))) {
+    blueprintOptions.push(new Option(`${item.name} (${item.count})`, key));
+  }
+  ui.mapBlueprintFilter.replaceChildren(...blueprintOptions);
+  if (selectedBlueprint && blueprintCounts.has(selectedBlueprint)) ui.mapBlueprintFilter.value = selectedBlueprint;
+  const minimumQuality = Number(ui.communityScore.value) || 0;
+  const after = ui.communityAfter.value ? Date.parse(`${ui.communityAfter.value}T00:00:00`) : 0;
+  const blueprintMatches = name => !ui.mapBlueprintFilter.value || String(name || '').trim().toLocaleLowerCase() === ui.mapBlueprintFilter.value;
+  const visibleRarities = new Set(ui.mapFilterRarities.filter(control => control.checked).map(control => control.dataset.mapFilterRarity));
+  const rarityMatches = name => visibleRarities.has(rarityForBlueprint(name)?.id || 'unrated');
+  const dateMatches = timestamp => !after || Date.parse(timestamp) >= after;
+  const personalQuality = find => reliabilityForFind(find, data.sightings.find(entry => entry.id === find.sightingId || entry.savedFindId === find.id)).score;
+  const visibleFinds = ui.showPersonal.checked ? finds.filter(find => blueprintMatches(find.name) && rarityMatches(find.name) &&
+    personalQuality(find) >= minimumQuality && dateMatches(find.foundAt)) : [];
+  for (const find of visibleFinds) {
     const pin = document.createElement('button');
     const rarity = rarityForBlueprint(find.name);
     pin.className = `pin${rarity ? ` rarity-${rarity.id}` : ''}`; pin.type = 'button';
@@ -434,8 +494,9 @@ function render() {
     pin.style.left = `${find.x * 100}%`; pin.style.top = `${find.y * 100}%`;
     pin.title = `${find.name} · ${rarity ? `${rarity.label} (estimated find rarity)` : 'Rarity not rated'} · ${new Date(find.foundAt).toLocaleString()}`;
     pin.setAttribute('aria-label', pin.title);
+    const star = document.createElement('span'); star.className = 'pin-star'; star.textContent = '★'; star.setAttribute('aria-hidden', 'true');
     const pinLabel = document.createElement('span'); pinLabel.className = 'pin-label'; pinLabel.textContent = find.name;
-    pin.append(pinLabel);
+    pin.append(star, pinLabel);
     pin.addEventListener('click', event => {
       event.stopPropagation();
       editingMapPin = false;
@@ -445,14 +506,14 @@ function render() {
     });
     ui.pins.append(pin);
   }
-  const minimum = Number(ui.communityScore.value) || 0;
-  const after = ui.communityAfter.value ? Date.parse(`${ui.communityAfter.value}T00:00:00`) : 0;
   let communityVisible = 0;
   const communityItems = [];
   if (ui.showCommunity.checked) for (const player of community.players) {
     if (ui.communityPlayer.value && player.name.toLowerCase() !== ui.communityPlayer.value) continue;
     for (const [index, find] of player.finds.entries()) {
-      if (find.map !== currentMap || find.score < minimum || Date.parse(find.foundAt) < after) continue;
+      if (find.map !== currentMap || find.score < minimumQuality || !dateMatches(find.foundAt) ||
+          !blueprintMatches(find.name) || !rarityMatches(find.name) ||
+          isOwnCommunityDuplicate(player.name, ui.gameName.value, find, data.finds)) continue;
       communityVisible++;
       const pin = document.createElement('button'); pin.type = 'button';
       const rarity = rarityForBlueprint(find.name);
@@ -501,7 +562,10 @@ function render() {
   ui.communityCount.textContent = community.importedAt
     ? `${community.players.length} players imported · ${communityVisible} shown on this map`
     : 'No community CSV imported.';
-  for (const sighting of data.sightings.filter(entry => !entry.dismissed && !entry.savedFindId && entry.position && entry.map === currentMap)) {
+  for (const sighting of data.sightings.filter(entry => ui.showPersonal.checked && !entry.dismissed && !entry.savedFindId &&
+    entry.position && entry.map === currentMap && blueprintMatches(entry.name) && rarityMatches(entry.name) && dateMatches(entry.seenAt) &&
+    (entry.name === unidentifiedBlueprint ? 0 : reliabilityForFind({ autoGenerated: true, nameSource: entry.nameSource,
+      accuracy: entry.confidence ? '' : 'Approximate' }, entry).score) >= minimumQuality)) {
     const pin = document.createElement('button'); pin.type = 'button'; pin.className = 'pin sighting-pin';
     pin.dataset.pinKind = 'sighting'; pin.dataset.pinId = sighting.id;
     pin.dataset.foundAt = sighting.seenAt; pin.dataset.source = 'Sighting awaiting review';
@@ -535,7 +599,7 @@ function render() {
   ui.save.disabled = !(currentMap && ui.blueprintName.value.trim() && draftPosition);
   ui.count.textContent = String(finds.length);
   ui.list.replaceChildren();
-  for (const find of [...(ui.showPersonal.checked ? finds : [])].reverse()) {
+  for (const find of [...visibleFinds].reverse()) {
     const item = document.createElement('li');
     const description = document.createElement('span'); description.className = 'find-text';
     const name = document.createElement('strong'); name.textContent = find.name;
@@ -586,8 +650,10 @@ function renderPinPopup(focus = false) {
   ui.pinPopupDetails.hidden = editingMapPin;
   ui.pinPopupEdit.hidden = editingMapPin;
   ui.pinPopupForm.hidden = !editingMapPin;
-  ui.pinPopupImage.hidden = !sighting?.tilePreview;
-  if (sighting?.tilePreview) ui.pinPopupImage.src = sighting.tilePreview;
+  const catalogIcon = sighting?.catalogIcon || find?.catalogIcon;
+  const popupIcon = catalogIcon || sighting?.tilePreview;
+  ui.pinPopupImage.hidden = !popupIcon;
+  if (popupIcon) ui.pinPopupImage.src = popupIcon;
   ui.pinPopupDetails.replaceChildren();
   const details = [
     ['Map', entry.map],
@@ -618,6 +684,7 @@ function renderPinPopup(focus = false) {
 }
 
 function closePinPopup(focusPin = false) {
+  pinEditRequestId++;
   const previous = selectedMapPin;
   selectedMapPin = null;
   editingMapPin = false;
@@ -630,14 +697,22 @@ function closePinPopup(focusPin = false) {
   }
 }
 
-function startPinEdit() {
+async function startPinEdit() {
   if (!selectedMapPin) return;
   const find = selectedMapPin.kind === 'find' && data.finds.find(entry => entry.id === selectedMapPin.id);
   const sighting = !find && data.sightings.find(entry => entry.id === selectedMapPin.id);
   const entry = find || sighting;
   const position = find || sighting?.position;
   if (!entry || !position) return;
+  const requestId = ++pinEditRequestId;
+  const relatedSighting = find && data.sightings.find(item => item.id === find.sightingId || item.savedFindId === find.id);
   ui.pinEditName.value = entry.name === unidentifiedBlueprint ? '' : entry.name;
+  ui.pinEditBlueprintSearch.value = '';
+  ui.pinEditBlueprintPreview.hidden = true;
+  ui.pinEditBlueprintList.replaceChildren();
+  ui.pinEditBlueprintHint.textContent = 'Loading the complete blueprint catalog…';
+  pinEditCandidates = [];
+  ui.pinPopupForm.dataset.catalogIcon = '';
   ui.pinEditMap.replaceChildren();
   for (const name of Object.keys(data.maps)) {
     const option = document.createElement('option'); option.value = name; option.textContent = name;
@@ -648,7 +723,85 @@ function startPinEdit() {
   ui.pinEditY.value = String(Math.round(position.y * 1000) / 10);
   editingMapPin = true;
   renderPinPopup();
-  ui.pinEditName.focus({ preventScroll: true });
+  await populateBlueprintPicker(relatedSighting || sighting, entry.name, requestId);
+  if (requestId === pinEditRequestId && editingMapPin) ui.pinEditName.focus({ preventScroll: true });
+}
+
+function renderBlueprintPicker() {
+  const query = ui.pinEditBlueprintSearch.value.trim().toLocaleLowerCase();
+  const selectedName = ui.pinEditName.value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  ui.pinEditBlueprintList.replaceChildren();
+  const candidates = pinEditCandidates.filter(candidate => !query || candidate.name.toLocaleLowerCase().includes(query));
+  for (const candidate of candidates) {
+    const option = document.createElement('button');
+    option.type = 'button'; option.className = 'blueprint-picker-option'; option.setAttribute('role', 'option');
+    const selected = candidate.name.toLocaleLowerCase() === selectedName;
+    option.setAttribute('aria-selected', String(selected));
+    if (selected) option.classList.add('selected');
+    const icon = document.createElement('img'); icon.src = candidate.icon; icon.alt = ''; icon.loading = 'lazy';
+    const details = document.createElement('span'); details.className = 'blueprint-picker-option-text';
+    const name = document.createElement('strong'); name.textContent = candidate.name;
+    const score = document.createElement('small');
+    score.textContent = Number.isFinite(candidate.score) && candidate.score >= 0
+      ? `Image match score ${Math.round(candidate.score * 100)}%` : 'Catalog blueprint';
+    details.append(name, score); option.append(icon, details);
+    option.addEventListener('click', () => {
+      ui.pinEditName.value = candidate.name;
+      ui.pinPopupForm.dataset.catalogIcon = candidate.icon;
+      const preview = ui.pinEditBlueprintPreview.querySelector('img');
+      preview.src = candidate.icon;
+      ui.pinEditBlueprintPreview.querySelector('span').textContent = `${candidate.name} selected`;
+      ui.pinEditBlueprintPreview.hidden = false;
+      renderBlueprintPicker();
+    });
+    ui.pinEditBlueprintList.append(option);
+  }
+  if (!candidates.length) {
+    const empty = document.createElement('p'); empty.className = 'blueprint-picker-empty';
+    empty.textContent = 'No catalog blueprint matches that search.';
+    ui.pinEditBlueprintList.append(empty);
+  }
+}
+
+async function populateBlueprintPicker(sighting, selectedName, requestId) {
+  ui.pinEditBlueprintList.textContent = 'Loading blueprint catalog…';
+  try {
+    const catalog = await loadBlueprintCatalog();
+    if (requestId !== pinEditRequestId || !editingMapPin) return;
+    let ranked = [];
+    if (sighting?.tilePreview) {
+      ui.pinEditBlueprintHint.textContent = `Comparing the captured item with all ${catalog.length} catalog icons…`;
+      try {
+        const image = new Image(); image.src = sighting.tilePreview; await image.decode();
+        ranked = await rankBlueprintPreview(image, catalog.length);
+      } catch { /* Keep the complete name list available when image ranking fails. */ }
+    }
+    if (requestId !== pinEditRequestId || !editingMapPin) return;
+    const scores = new Map(ranked.map((candidate, index) => [candidate.name.toLocaleLowerCase(), { ...candidate, rank: index }]));
+    pinEditCandidates = catalog.map(candidate => ({ ...candidate, ...(scores.get(candidate.name.toLocaleLowerCase()) || {}) }))
+      .sort((first, second) => {
+        const firstRanked = Number.isFinite(first.score), secondRanked = Number.isFinite(second.score);
+        if (firstRanked && secondRanked) return second.score - first.score;
+        if (firstRanked !== secondRanked) return firstRanked ? -1 : 1;
+        return first.name.localeCompare(second.name);
+      });
+    const match = pinEditCandidates.find(candidate => candidate.name.toLocaleLowerCase() === selectedName.trim().toLocaleLowerCase());
+    if (match) {
+      ui.pinPopupForm.dataset.catalogIcon = match.icon;
+      const preview = ui.pinEditBlueprintPreview.querySelector('img'); preview.src = match.icon;
+      ui.pinEditBlueprintPreview.querySelector('span').textContent = `${match.name} selected`;
+      ui.pinEditBlueprintPreview.hidden = false;
+    }
+    ui.pinEditBlueprintHint.textContent = ranked.some(candidate => candidate.score >= 0)
+      ? `Best image similarities first; scores are for sorting, not probabilities. Search all ${catalog.length} blueprints.`
+      : `No usable image ranking; all ${catalog.length} blueprints are listed alphabetically.`;
+    renderBlueprintPicker();
+  } catch {
+    if (requestId !== pinEditRequestId || !editingMapPin) return;
+    pinEditCandidates = [];
+    ui.pinEditBlueprintHint.textContent = 'Catalog unavailable. You can still enter a blueprint name.';
+    ui.pinEditBlueprintList.textContent = 'Blueprint catalog could not be loaded. You can still enter a name.';
+  }
 }
 
 function savePinEdit(event) {
@@ -663,9 +816,11 @@ function savePinEdit(event) {
   const map = ui.pinEditMap.value;
   const x = Number(ui.pinEditX.value) / 100;
   const y = Number(ui.pinEditY.value) / 100;
+  const selectedCatalogIcon = ui.pinPopupForm.dataset.catalogIcon || '';
   if (!name || !data.maps[map] || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
   entry.name = name;
   entry.map = map;
+  entry.catalogIcon = selectedCatalogIcon;
   if (find) {
     find.x = x; find.y = y;
     find.nameSource = 'user edited';
@@ -678,15 +833,26 @@ function savePinEdit(event) {
     sighting.map = map;
     sighting.position = { x, y };
     sighting.nameSource = 'user edited';
+    sighting.catalogIcon = selectedCatalogIcon;
+  } else if (sighting) {
+    sighting.catalogIcon = selectedCatalogIcon;
+  }
+  let finalizedSighting = false;
+  if (!find && sighting) {
+    finalizedSighting = saveLocatedSighting(sighting);
+    if (finalizedSighting) selectedMapPin = { kind: 'find', id: sighting.savedFindId };
   }
   if (sighting && selectedSightingId === sighting.id) {
-    ui.blueprintName.value = name;
+    ui.blueprintName.value = finalizedSighting ? '' : name;
     draftPosition = !sighting.savedFindId && map === currentMap ? sighting.position : null;
+    if (finalizedSighting) selectedSightingId = null;
   }
   editingMapPin = false;
   if (map !== currentMap) selectedMapPin = null;
   persist(); render();
-  setStatus(`Updated ${name}${map !== currentMap ? ` on ${map}` : ''}.`, Boolean(mediaStream));
+  setStatus(finalizedSighting
+    ? `Confirmed and pinned ${name}${map !== currentMap ? ` on ${map}` : ''}.`
+    : `Updated ${name}${map !== currentMap ? ` on ${map}` : ''}.`, Boolean(mediaStream));
 }
 
 function renderSightings() {
@@ -752,6 +918,7 @@ function renderSightings() {
     button.addEventListener('click', () => {
       selected.name = candidate.name;
       selected.nameSource = 'user confirmed icon';
+      selected.catalogIcon = candidate.icon;
       ui.blueprintName.value = candidate.name;
       const saved = saveLocatedSighting(selected);
       persist(); render();
@@ -773,6 +940,7 @@ function saveLocatedSighting(sighting) {
   find.sightingId = sighting.id;
   find.nameSource = sighting.nameSource || 'OCR';
   find.autoGenerated = true;
+  find.catalogIcon = sighting.catalogIcon || '';
   sighting.savedFindId = find.id;
   data.finds.push(find);
   if (selectedSightingId === sighting.id) {
@@ -886,7 +1054,11 @@ async function recordSighting(name, frame, tile = null, targetSighting = null) {
     persist(); render();
     return true;
   }
-  if (name !== unidentifiedBlueprint && recent.length) return false;
+  if (name !== unidentifiedBlueprint && recent.length) {
+    persist();
+    renderSightings();
+    return false;
+  }
   const sighting = { id: crypto.randomUUID(), name, seenAt: new Date(now).toISOString(), frame: snapshot.toDataURL('image/jpeg', 0.55),
     tilePreview, nameSource: name === unidentifiedBlueprint ? null : 'OCR', savedFindId: null };
   data.sightings.unshift(sighting);
@@ -1168,6 +1340,26 @@ ui.mapName.addEventListener('keydown', event => { if (event.key === 'Enter') cho
 ui.map.addEventListener('click', event => { closePinPopup(); setDraft(positionOnZoomedMap(event)); });
 ui.map.addEventListener('wheel', zoomMapAt, { passive: false });
 ui.map.addEventListener('pointermove', onMapPointerMove);
+ui.mapFiltersToggle.addEventListener('click', event => {
+  event.stopPropagation();
+  ui.mapFilters.hidden = !ui.mapFilters.hidden;
+  ui.mapFiltersToggle.setAttribute('aria-expanded', String(!ui.mapFilters.hidden));
+  if (!ui.mapFilters.hidden) ui.showPersonal.focus();
+});
+ui.mapFilters.addEventListener('click', event => event.stopPropagation());
+ui.mapFilterApply.addEventListener('click', () => {
+  render();
+  ui.mapFilters.hidden = true;
+  ui.mapFiltersToggle.setAttribute('aria-expanded', 'false');
+  ui.mapFiltersToggle.focus();
+});
+ui.mapFilters.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    ui.mapFilters.hidden = true;
+    ui.mapFiltersToggle.setAttribute('aria-expanded', 'false');
+    ui.mapFiltersToggle.focus();
+  }
+});
 ui.pins.addEventListener('click', event => {
   if (choosingGroupMember) return;
   const pin = pinFromPointerTarget(event.target);
@@ -1227,6 +1419,17 @@ ui.pinPopup.addEventListener('click', event => event.stopPropagation());
 ui.pinPopupClose.addEventListener('click', () => closePinPopup(true));
 ui.pinPopupEdit.addEventListener('click', startPinEdit);
 ui.pinPopupForm.addEventListener('submit', savePinEdit);
+ui.pinEditBlueprintSearch.addEventListener('input', renderBlueprintPicker);
+ui.pinEditName.addEventListener('input', () => {
+  const match = pinEditCandidates.find(candidate => candidate.name.toLocaleLowerCase() === ui.pinEditName.value.trim().replace(/\s+/g, ' ').toLocaleLowerCase());
+  ui.pinPopupForm.dataset.catalogIcon = match?.icon || '';
+  if (match) {
+    const preview = ui.pinEditBlueprintPreview.querySelector('img'); preview.src = match.icon;
+    ui.pinEditBlueprintPreview.querySelector('span').textContent = `${match.name} selected`;
+    ui.pinEditBlueprintPreview.hidden = false;
+  } else ui.pinEditBlueprintPreview.hidden = true;
+  renderBlueprintPicker();
+});
 ui.pinEditCancel.addEventListener('click', () => { editingMapPin = false; renderPinPopup(); ui.pinPopupEdit.focus({ preventScroll: true }); });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !ui.pinPopup.hidden) {
@@ -1344,7 +1547,10 @@ ui.export.addEventListener('click', () => {
   link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 });
 ui.gameName.value = localStorage.getItem('arc-blueprint-game-name') || '';
-ui.gameName.addEventListener('change', () => localStorage.setItem('arc-blueprint-game-name', ui.gameName.value.trim()));
+ui.gameName.addEventListener('input', () => {
+  localStorage.setItem('arc-blueprint-game-name', ui.gameName.value.trim());
+  render();
+});
 ui.readGameName.addEventListener('click', async () => {
   const frame = takeFrame(false);
   if (!frame) return;
@@ -1368,6 +1574,7 @@ ui.readGameName.addEventListener('click', async () => {
     if (!name) throw new Error('No game name was readable. Type it above.');
     ui.gameName.value = name;
     localStorage.setItem('arc-blueprint-game-name', name);
+    render();
     setStatus(`Name read as ${name}. Check it before sharing.`, Boolean(mediaStream));
   } catch (error) { setStatus(error.message); }
 });
@@ -1388,15 +1595,21 @@ ui.communityImport.addEventListener('change', async () => {
   try {
     const imported = importCommunityCsv(await ui.communityImport.files[0].text());
     const next = { ...imported, importedAt: new Date().toISOString() };
+    let duplicatesRemoved = 0;
+    for (const player of next.players) {
+      const previousCount = player.finds.length;
+      player.finds = deduplicateBlueprintEntries(player.finds);
+      duplicatesRemoved += previousCount - player.finds.length;
+    }
     localStorage.setItem(COMMUNITY_STORAGE_KEY, JSON.stringify(next));
     community = next;
     ui.communityPlayer.replaceChildren(new Option('All players', ''));
     for (const player of community.players) ui.communityPlayer.add(new Option(player.name, player.name.toLowerCase()));
-    render(); setStatus(`Imported ${community.players.length} player snapshots${imported.rejected ? `; skipped ${imported.rejected} invalid rows` : ''}.`);
+    render(); setStatus(`Imported ${community.players.length} player snapshots${duplicatesRemoved ? `; removed ${duplicatesRemoved} duplicate discoveries` : ''}${imported.rejected ? `; skipped ${imported.rejected} invalid rows` : ''}.`);
   } catch (error) { setStatus(`Community import failed: ${error.message}`); }
   ui.communityImport.value = '';
 });
-for (const control of [ui.showPersonal, ui.showCommunity, ui.communityPlayer, ui.communityScore, ui.communityAfter, ui.communitySort]) {
+for (const control of [...ui.mapFilterRarities, ui.mapBlueprintFilter, ui.showPersonal, ui.showCommunity, ui.communityPlayer, ui.communityScore, ui.communityAfter, ui.communitySort]) {
   control.addEventListener('input', () => { ui.communityScoreValue.value = ui.communityScore.value; render(); });
 }
 ui.import.addEventListener('change', async () => {
@@ -1449,7 +1662,14 @@ ui.mapName.value = currentMap;
 ui.presetMap.value = presetForMap(data.maps[currentMap])?.id || 'stella-upper';
 for (const player of community.players) ui.communityPlayer.add(new Option(player.name, player.name.toLowerCase()));
 updateAlertPermission();
+let migratedEditedSightings = 0;
+for (const sighting of data.sightings) {
+  if (!sighting.dismissed && !sighting.savedFindId && sighting.position && sighting.name !== unidentifiedBlueprint &&
+      sighting.nameSource === 'user edited' && saveLocatedSighting(sighting)) migratedEditedSightings++;
+}
+if (migratedEditedSightings) persist();
 render();
+if (migratedEditedSightings) setStatus(`Finalized ${migratedEditedSightings} manually edited blueprint${migratedEditedSightings === 1 ? '' : 's'} on the map.`);
 
 // Resolve the newest stored sighting after a reload as well as new live tiles.
 // This lets an interrupted capture finish naming a previously located item.
