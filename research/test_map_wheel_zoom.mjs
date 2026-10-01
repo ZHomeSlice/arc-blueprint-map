@@ -33,7 +33,8 @@ try {
   const draft = await page.locator('#draft-pin').evaluate(pin => ({ x: parseFloat(pin.style.left), y: parseFloat(pin.style.top) }));
   assert.ok(Math.abs(draft.x - beforeX / before.width * 100) < 0.1);
   assert.ok(Math.abs(draft.y - beforeY / before.height * 100) < 0.1);
-  await page.fill('#blueprint-name', 'Defibrillator');
+  await page.fill('#blueprint-search', 'Defibrillator');
+  await page.locator('#blueprint-list .blueprint-picker-option').click();
   await page.click('#save-find');
   const pin = page.locator('#pins .pin').first();
   await pin.scrollIntoViewIfNeeded();

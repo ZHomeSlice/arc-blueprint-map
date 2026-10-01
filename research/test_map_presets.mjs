@@ -23,7 +23,8 @@ try {
   await page.locator('#preset-map').selectOption('stella-lower');
   await page.locator('#use-preset-map').click();
   await page.locator('#map').click({ position: { x: 300, y: 200 } });
-  await page.locator('#blueprint-name').fill('Test blueprint');
+  await page.locator('#blueprint-search').fill('Defibrillator');
+  await page.locator('#blueprint-list .blueprint-picker-option').click();
   await page.locator('#save-find').click();
   assert.equal(await page.locator('#find-count').textContent(), '1');
   await page.locator('#preset-map').selectOption('stella-upper');

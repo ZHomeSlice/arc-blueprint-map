@@ -16,7 +16,11 @@ The app runs at `http://127.0.0.1:4177/` and binds only to your computer. Game f
 
 Capture requests 2 FPS and at most 1600×900. Routine scanning checks small container and map patches; blueprint detection uses the upper-left quarter when a container opens. Text recognition runs only when a visible container has a recent blueprint needing a name. Full-frame processing is reserved for discovery snapshots, map location matching, and manual captures. Stopping capture releases scanning buffers and text-recognition resources.
 
-To share confirmed finds, check **Share** beside each find, enter your in-game name, and select **Copy blueprint JSON and open Form**. Paste the JSON into the prefilled Google Form. This sends names, map and floor, positions, times, and a sortable reliability estimate; it sends no screenshots or map images. Download the community CSV from the link in the app and import it separately from your own finds. Community pins can be filtered by player, date, and reliability.
+Use **Search blueprints** to filter the full catalog, then select a result. Pin editing also searches all catalog blueprints, with image matches first. The match list supports mouse-wheel scrolling without zooming the map. Manual saves and edits require a catalog selection.
+
+To share confirmed finds, check **Share** beside each find, enter your in-game name, and select **Copy blueprint JSON and open Form**. Paste into the prefilled Google Form's **Blueprint JSON** field and select **Submit**. The linked community sheet receives the submission. This sends names, map and floor, positions, times, and a sortable reliability estimate; it sends no screenshots or map images. Older checked finds with names outside the catalog must be corrected through search or unchecked before sharing. Download the community CSV from the link in the app and import it separately from your own finds. Community pins can be filtered by player, date, and reliability.
+
+**Export JSON** downloads a private backup, not a community submission. If you have only the exported file, first use **Import JSON**, review and check the finds to share, then use **Copy blueprint JSON and open Form**.
 
 ## Current limits
 

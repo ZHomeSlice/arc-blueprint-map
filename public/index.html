@@ -49,7 +49,10 @@
       </section>
       <section class="card">
         <h2>3. Save a find</h2>
-        <label for="blueprint-name">Blueprint name</label><input id="blueprint-name" placeholder="Enter or let OCR fill this in">
+        <label for="blueprint-search">Search blueprints</label><input id="blueprint-search" type="search" placeholder="Filter the full blueprint catalog" aria-controls="blueprint-list">
+        <p id="blueprint-search-hint" class="blueprint-picker-hint">Type part of a name, then select the correct catalog blueprint.</p>
+        <div id="blueprint-list" class="blueprint-picker-list" role="listbox" aria-label="Blueprint search results"></div>
+        <label for="blueprint-name">Selected blueprint</label><input id="blueprint-name" placeholder="Select a search result or confirm an icon" readonly>
         <div class="row"><button id="capture-position">Show current frame</button><button id="auto-locate">Locate on map</button></div>
         <label class="upload" for="saved-map-screenshot">Correct selected sighting from a saved in-game map screenshot</label><input type="file" id="saved-map-screenshot" accept="image/png,image/jpeg,image/webp" hidden>
         <button id="save-find" class="primary full" disabled>Save pin</button>
@@ -65,7 +68,7 @@
         <label for="game-name">In-game name</label><div class="row"><input id="game-name" maxlength="40" placeholder="For example: ZHomeSlice"><button id="read-game-name" type="button">Read from game</button></div>
         <button id="share-blueprints" type="button" class="full">Copy blueprint JSON and open Form</button>
         <textarea id="share-json" class="share-json" rows="5" readonly hidden aria-label="Blueprint JSON to paste into the Form"></textarea>
-        <p class="hint">Check Share beside each confirmed find below. OCR-only automatic pins start unchecked so you can review them first. The share copy contains names, map and floor, positions, dates, and a sortable reliability estimate. It leaves out screenshots and notes.</p>
+        <p class="hint">To submit to the community sheet: check Share beside each confirmed find, enter your in-game name, then use Copy blueprint JSON and open Form. Paste into the Form's Blueprint JSON field and select Submit. Export JSON is a private backup; it is not the community submission. The share copy leaves out screenshots and notes.</p>
         <h3>Community finds</h3>
         <div class="community-controls">
           <p class="hint"><a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsdODLTK8GpXX_1061l1kk15j4yPDVwURrXOgcZCbxulwiIgsqDSPdUKc87G6xark2ofznSMi3DMB/pub?gid=929643861&amp;single=true&amp;output=csv" target="_blank" rel="noopener noreferrer">Download latest community CSV</a></p>
@@ -116,11 +119,11 @@
             <button id="pin-popup-edit" type="button">Edit pin</button>
             <form id="pin-popup-form" hidden>
               <label for="pin-edit-blueprint-search">Choose a blueprint</label>
-              <input id="pin-edit-blueprint-search" type="search" placeholder="Search all blueprints">
+              <input id="pin-edit-blueprint-search" type="search" placeholder="Search all blueprints" aria-controls="pin-edit-blueprint-list">
               <p id="pin-edit-blueprint-hint" class="blueprint-picker-hint">Best image matches first; search to choose any catalog blueprint.</p>
               <div id="pin-edit-blueprint-list" class="blueprint-picker-list" role="listbox" aria-label="Blueprint catalog"></div>
               <div id="pin-edit-blueprint-preview" class="blueprint-picker-preview" hidden><img alt="Selected blueprint catalog icon"><span></span></div>
-              <label for="pin-edit-name">Blueprint name</label><input id="pin-edit-name" maxlength="80" required>
+              <label for="pin-edit-name">Selected blueprint</label><input id="pin-edit-name" placeholder="Select a catalog result" readonly>
               <label for="pin-edit-map">Map</label><select id="pin-edit-map" required></select>
               <div class="pin-edit-position">
                 <label for="pin-edit-x">Across %<input id="pin-edit-x" type="number" min="0" max="100" step="0.1" required></label>

@@ -29,7 +29,8 @@ const ui = {
   mapFiltersToggle: $('map-filters-toggle'), mapFilters: $('map-filters'),
   mapFilterRarities: [...document.querySelectorAll('[data-map-filter-rarity]')], mapBlueprintFilter: $('map-blueprint-filter'),
   mapFilterApply: $('map-filter-apply'),
-  blueprintName: $('blueprint-name'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
+  blueprintName: $('blueprint-name'), blueprintSearch: $('blueprint-search'), blueprintList: $('blueprint-list'),
+  blueprintSearchHint: $('blueprint-search-hint'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
   start: $('start-capture'), stop: $('stop-capture'), capturePosition: $('capture-position'), autoLocate: $('auto-locate'), mapScreenshot: $('saved-map-screenshot'),
   showPreview: $('show-preview'), pauseScanning: $('pause-scanning'), previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
   framePanel: $('frame-panel'), frame: $('frame-canvas'), useFrameMap: $('use-frame-map'), status: $('status'), dot: $('status-dot'),
@@ -70,6 +71,7 @@ let selectedSightingId = null;
 let selectedMapPin = null;
 let editingMapPin = false;
 let pinEditCandidates = [];
+let blueprintCatalog = [];
 let pinEditRequestId = 0;
 let mapZoom = { scale: 1, x: 0, y: 0 };
 let hoveredPinKey = '';
@@ -390,7 +392,7 @@ function positionOnZoomedMap(event) {
 }
 
 function zoomMapAt(event) {
-  if (ui.pinPopup.contains(event.target)) return;
+  if (ui.pinPopup.contains(event.target) || ui.mapFilters.contains(event.target)) return;
   if (!ui.map.classList.contains('has-image')) return;
   event.preventDefault();
   const bounds = ui.map.getBoundingClientRect();
@@ -602,7 +604,7 @@ function render() {
     ui.draftPin.style.top = `${draftPosition.y * 100}%`;
     ui.coordinates.textContent = `New pin · ${Math.round(draftPosition.x * 100)}%, ${Math.round(draftPosition.y * 100)}%`;
   } else ui.coordinates.textContent = 'No pin selected';
-  ui.save.disabled = !(currentMap && ui.blueprintName.value.trim() && draftPosition);
+  ui.save.disabled = !(currentMap && catalogBlueprint(ui.blueprintName.value) && draftPosition);
   ui.count.textContent = String(finds.length);
   ui.list.replaceChildren();
   for (const find of [...visibleFinds].reverse()) {
@@ -730,18 +732,24 @@ async function startPinEdit() {
   editingMapPin = true;
   renderPinPopup();
   await populateBlueprintPicker(relatedSighting || sighting, entry.name, requestId);
-  if (requestId === pinEditRequestId && editingMapPin) ui.pinEditName.focus({ preventScroll: true });
+  if (requestId === pinEditRequestId && editingMapPin) ui.pinEditBlueprintSearch.focus({ preventScroll: true });
 }
 
-function renderBlueprintPicker() {
-  const query = ui.pinEditBlueprintSearch.value.trim().toLocaleLowerCase();
-  const selectedName = ui.pinEditName.value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
-  ui.pinEditBlueprintList.replaceChildren();
-  const candidates = pinEditCandidates.filter(candidate => !query || candidate.name.toLocaleLowerCase().includes(query));
+const catalogNameKey = name => String(name || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+
+function catalogBlueprint(name, catalog = blueprintCatalog) {
+  return catalog.find(candidate => catalogNameKey(candidate.name) === catalogNameKey(name));
+}
+
+function renderCatalogOptions(list, catalog, query, selectedName, onSelect) {
+  const terms = catalogNameKey(query).split(' ').filter(Boolean);
+  list.replaceChildren();
+  list.scrollTop = 0;
+  const candidates = catalog.filter(candidate => terms.every(term => catalogNameKey(candidate.name).includes(term)));
   for (const candidate of candidates) {
     const option = document.createElement('button');
     option.type = 'button'; option.className = 'blueprint-picker-option'; option.setAttribute('role', 'option');
-    const selected = candidate.name.toLocaleLowerCase() === selectedName;
+    const selected = catalogNameKey(candidate.name) === catalogNameKey(selectedName);
     option.setAttribute('aria-selected', String(selected));
     if (selected) option.classList.add('selected');
     const icon = document.createElement('img'); icon.src = candidate.icon; icon.alt = ''; icon.loading = 'lazy';
@@ -751,7 +759,19 @@ function renderBlueprintPicker() {
     score.textContent = Number.isFinite(candidate.score) && candidate.score >= 0
       ? `Image match score ${Math.round(candidate.score * 100)}%` : 'Catalog blueprint';
     details.append(name, score); option.append(icon, details);
-    option.addEventListener('click', () => {
+    option.addEventListener('click', () => onSelect(candidate));
+    list.append(option);
+  }
+  if (!candidates.length) {
+    const empty = document.createElement('p'); empty.className = 'blueprint-picker-empty';
+    empty.textContent = 'No catalog blueprint matches that search. Try a shorter name.';
+    list.append(empty);
+  }
+}
+
+function renderBlueprintPicker() {
+  renderCatalogOptions(ui.pinEditBlueprintList, pinEditCandidates, ui.pinEditBlueprintSearch.value, ui.pinEditName.value,
+    candidate => {
       ui.pinEditName.value = candidate.name;
       ui.pinPopupForm.dataset.catalogIcon = candidate.icon;
       const preview = ui.pinEditBlueprintPreview.querySelector('img');
@@ -760,12 +780,26 @@ function renderBlueprintPicker() {
       ui.pinEditBlueprintPreview.hidden = false;
       renderBlueprintPicker();
     });
-    ui.pinEditBlueprintList.append(option);
-  }
-  if (!candidates.length) {
-    const empty = document.createElement('p'); empty.className = 'blueprint-picker-empty';
-    empty.textContent = 'No catalog blueprint matches that search.';
-    ui.pinEditBlueprintList.append(empty);
+}
+
+function renderManualBlueprintPicker() {
+  renderCatalogOptions(ui.blueprintList, blueprintCatalog, ui.blueprintSearch.value, ui.blueprintName.value, candidate => {
+    ui.blueprintName.value = candidate.name;
+    renderManualBlueprintPicker();
+    render();
+  });
+}
+
+async function loadManualBlueprintPicker() {
+  ui.blueprintList.textContent = 'Loading blueprint catalog…';
+  try {
+    blueprintCatalog = [...await loadBlueprintCatalog()].sort((a, b) => a.name.localeCompare(b.name));
+    ui.blueprintSearchHint.textContent = `Search all ${blueprintCatalog.length} blueprints, then select a result. Only catalog names can be saved.`;
+    renderManualBlueprintPicker();
+    render();
+  } catch {
+    ui.blueprintList.textContent = 'Blueprint catalog could not be loaded. Reload the app to try again.';
+    ui.blueprintSearchHint.textContent = 'Saving requires a catalog blueprint.';
   }
 }
 
@@ -805,8 +839,8 @@ async function populateBlueprintPicker(sighting, selectedName, requestId) {
   } catch {
     if (requestId !== pinEditRequestId || !editingMapPin) return;
     pinEditCandidates = [];
-    ui.pinEditBlueprintHint.textContent = 'Catalog unavailable. You can still enter a blueprint name.';
-    ui.pinEditBlueprintList.textContent = 'Blueprint catalog could not be loaded. You can still enter a name.';
+    ui.pinEditBlueprintHint.textContent = 'Saving requires a catalog blueprint.';
+    ui.pinEditBlueprintList.textContent = 'Blueprint catalog could not be loaded. Close the editor and reload the app to try again.';
   }
 }
 
@@ -818,11 +852,13 @@ function savePinEdit(event) {
     : find && data.sightings.find(entry => entry.id === find.sightingId || entry.savedFindId === find.id);
   const entry = find || sighting;
   if (!entry || !ui.pinPopupForm.reportValidity()) return;
-  const name = ui.pinEditName.value.trim();
+  const blueprint = catalogBlueprint(ui.pinEditName.value, pinEditCandidates);
+  if (!blueprint) { setStatus('Search and select a catalog blueprint before saving.'); return; }
+  const name = blueprint.name;
   const map = ui.pinEditMap.value;
   const x = Number(ui.pinEditX.value) / 100;
   const y = Number(ui.pinEditY.value) / 100;
-  const selectedCatalogIcon = ui.pinPopupForm.dataset.catalogIcon || '';
+  const selectedCatalogIcon = blueprint.icon;
   if (!name || !data.maps[map] || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return;
   entry.name = name;
   entry.map = map;
@@ -882,7 +918,7 @@ function renderSightings() {
       render();
       reviewStoredSightingIcon(sighting);
       ui.pinHelp.textContent = sighting.savedFindId ? 'This blueprint is already saved on the map.' : sighting.position
-        ? 'Map position saved with this sighting. Enter or review its name, then save the pin.'
+        ? 'Map position saved with this sighting. Search and select its blueprint, then save the pin.'
         : 'Open the in-game map soon after finding the blueprint, or click its location on the map.';
     });
     const review = document.createElement('button'); review.type = 'button'; review.className = 'icon-btn';
@@ -1487,16 +1523,7 @@ ui.pinPopupClose.addEventListener('click', () => closePinPopup(true));
 ui.pinPopupEdit.addEventListener('click', startPinEdit);
 ui.pinPopupForm.addEventListener('submit', savePinEdit);
 ui.pinEditBlueprintSearch.addEventListener('input', renderBlueprintPicker);
-ui.pinEditName.addEventListener('input', () => {
-  const match = pinEditCandidates.find(candidate => candidate.name.toLocaleLowerCase() === ui.pinEditName.value.trim().replace(/\s+/g, ' ').toLocaleLowerCase());
-  ui.pinPopupForm.dataset.catalogIcon = match?.icon || '';
-  if (match) {
-    const preview = ui.pinEditBlueprintPreview.querySelector('img'); preview.src = match.icon;
-    ui.pinEditBlueprintPreview.querySelector('span').textContent = `${match.name} selected`;
-    ui.pinEditBlueprintPreview.hidden = false;
-  } else ui.pinEditBlueprintPreview.hidden = true;
-  renderBlueprintPicker();
-});
+ui.blueprintSearch.addEventListener('input', renderManualBlueprintPicker);
 ui.pinEditCancel.addEventListener('click', () => { editingMapPin = false; renderPinPopup(); ui.pinPopupEdit.focus({ preventScroll: true }); });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !ui.pinPopup.hidden) {
@@ -1592,16 +1619,21 @@ ui.useFrameMap.addEventListener('click', () => {
   persist(); render(); setStatus('Captured frame saved as map image', Boolean(mediaStream));
 });
 ui.save.addEventListener('click', () => {
-  if (!currentMap || !draftPosition || !ui.blueprintName.value.trim()) return;
+  const blueprint = catalogBlueprint(ui.blueprintName.value);
+  if (!currentMap || !draftPosition || !blueprint) return;
   if (data.sightings.some(entry => entry.id === selectedSightingId && entry.savedFindId)) {
     draftPosition = null; render(); setStatus('This sighting is already pinned.'); return;
   }
-  const find = createFind(ui.blueprintName.value, currentMap, draftPosition);
+  const find = createFind(blueprint.name, currentMap, draftPosition);
+  find.catalogIcon = blueprint.icon;
+  find.nameSource = 'user confirmed icon';
   const sighting = data.sightings.find(entry => entry.id === selectedSightingId && !entry.dismissed && !entry.savedFindId)
     || data.sightings.find(entry => !entry.dismissed && !entry.savedFindId && entry.name.toLowerCase() === find.name.toLowerCase());
   if (sighting) {
     find.foundAt = sighting.seenAt;
     sighting.name = find.name;
+    sighting.nameSource = find.nameSource;
+    sighting.catalogIcon = blueprint.icon;
     sighting.savedFindId = find.id;
     find.sightingId = sighting.id;
     sighting.position = { ...draftPosition };
@@ -1609,7 +1641,8 @@ ui.save.addEventListener('click', () => {
     if (sighting.locatedAt) find.accuracy = 'Approximate · matched from nearby in-game map view';
   }
   data.finds.push(find);
-  ui.blueprintName.value = ''; draftPosition = null;
+  ui.blueprintName.value = ''; ui.blueprintSearch.value = ''; draftPosition = null;
+  renderManualBlueprintPicker();
   ui.framePanel.hidden = true;
   ui.pinHelp.textContent = 'Match a map frame automatically, or click the location on your fixed map image.';
   persist(); render(); setStatus('Blueprint location saved', Boolean(mediaStream));
@@ -1653,8 +1686,13 @@ ui.readGameName.addEventListener('click', async () => {
   } catch (error) { setStatus(error.message); }
 });
 ui.shareBlueprints.addEventListener('click', async () => {
+  ui.shareJson.value = ''; ui.shareJson.hidden = true;
   try {
-    const payload = buildSharePayload(ui.gameName.value, data.finds.filter(shareApproved), data.sightings);
+    const catalog = await loadBlueprintCatalog();
+    const approved = data.finds.filter(shareApproved);
+    const unknown = approved.filter(find => !catalogBlueprint(find.name, catalog));
+    if (unknown.length) throw new Error(`${unknown.length} checked find${unknown.length === 1 ? ' has' : 's have'} a name outside the blueprint catalog. Edit those pins and select a search result, or uncheck Share.`);
+    const payload = buildSharePayload(ui.gameName.value, approved.map(find => ({ ...find, name: catalogBlueprint(find.name, catalog).name })), data.sightings);
     if (!payload.finds.length) throw new Error('Save a confirmed blueprint find before sharing.');
     localStorage.setItem('arc-blueprint-game-name', payload.gameName);
     const json = JSON.stringify(payload);
@@ -1744,6 +1782,7 @@ for (const sighting of data.sightings) {
 if (migratedEditedSightings) persist();
 render();
 if (migratedEditedSightings) setStatus(`Finalized ${migratedEditedSightings} manually edited blueprint${migratedEditedSightings === 1 ? '' : 's'} on the map.`);
+loadManualBlueprintPicker();
 
 // Resolve the newest stored sighting after a reload as well as new live tiles.
 // This lets an interrupted capture finish naming a previously located item.
