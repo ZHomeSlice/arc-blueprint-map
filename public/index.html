@@ -30,9 +30,14 @@
         <h2>2. Watch for blueprints</h2>
         <p class="hint">In Chrome or Edge, select <strong>Start capture</strong>, then choose <strong>Window → ARC Raiders</strong> in the browser’s share picker. If the game is absent, use borderless windowed mode or choose <strong>Entire Screen</strong>.</p>
         <div class="row"><button id="start-capture" class="primary">Start capture</button><button id="stop-capture" disabled>Stop</button></div>
+        <label class="hint capture-control"><input id="show-preview" type="checkbox"> Show live preview</label>
+        <details><summary>Capture troubleshooting</summary>
+          <label class="hint capture-control"><input id="pause-scanning" type="checkbox"> Pause scanning (keep sharing)</label>
+          <p class="hint">If your mouse stalls, pause scanning while leaving sharing active. No new blueprints or locations are detected while paused. If the stalls continue, select Stop to end sharing.</p>
+        </details>
         <button id="enable-alerts" class="full">Enable Windows notifications</button>
         <p class="hint">Blueprint sightings and map locations appear in the tracker. Windows notifications are optional.</p>
-        <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. Name OCR reads the upper-left quarter of the game frame. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
+        <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. It reads the upper-left quarter only when a blueprint needs a name. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
         <p class="hint" id="last-scan">No OCR scans yet</p>
         <details><summary>Last recognized text</summary><pre id="ocr-text">No scan yet</pre></details>
         <details open><summary>Blueprint sightings <span id="sighting-count">0</span></summary><ul id="sighting-list"></ul>

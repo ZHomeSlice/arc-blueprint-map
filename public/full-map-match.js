@@ -1,3 +1,4 @@
+import { analysisCanvas } from './analysis-image.js';
 // Match a clear piece of the in-game map above the player marker against a
 // downsized full-map image. The patch avoids the quest panel and map legend.
 const BASE_WIDTH = 768;
@@ -10,7 +11,7 @@ const SAMPLE_STEP = 3;
 const baseGrays = new WeakMap();
 
 function grayImage(source, width, height, crop) {
-  const canvas = document.createElement('canvas');
+  const canvas = analysisCanvas();
   canvas.width = width; canvas.height = height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (crop) context.drawImage(source, crop.x / SCREEN_WIDTH * source.width, crop.y / SCREEN_HEIGHT * source.height,

@@ -1,16 +1,20 @@
+import { analysisCanvas } from './analysis-image.js';
 const WIDTH = 240;
 const HEIGHT = 135;
 
 // The selected MAP tab has a bright rounded outline. Checking it prevents
 // blueprint art and other menus from being mistaken for an in-game map.
-export function isArcMapView(source) {
-  if (!source?.width || !source?.height || Math.abs(source.width / source.height - 16 / 9) > 0.15) return false;
+export function isArcMapView(source, buffers = {}) {
+  const sourceWidth = source?.videoWidth || source?.naturalWidth || source?.width;
+  const sourceHeight = source?.videoHeight || source?.naturalHeight || source?.height;
+  if (!sourceWidth || !sourceHeight || Math.abs(sourceWidth / sourceHeight - 16 / 9) > 0.15) return false;
   function brightFraction(left, top, width, height, sampleWidth) {
-    const canvas = document.createElement('canvas');
-    canvas.width = sampleWidth; canvas.height = 23;
+    const canvas = buffers[left] ||= analysisCanvas();
+    if (canvas.width !== sampleWidth) canvas.width = sampleWidth;
+    if (canvas.height !== 23) canvas.height = 23;
     const context = canvas.getContext('2d', { willReadFrequently: true });
-    context.drawImage(source, left * source.width / 2048, top * source.height / 1152,
-      width * source.width / 2048, height * source.height / 1152, 0, 0, sampleWidth, 23);
+    context.drawImage(source, left * sourceWidth / 2048, top * sourceHeight / 1152,
+      width * sourceWidth / 2048, height * sourceHeight / 1152, 0, 0, sampleWidth, 23);
     const pixels = context.getImageData(0, 0, sampleWidth, 23).data;
     let bright = 0;
     for (let i = 0; i < pixels.length; i += 4) {
@@ -25,7 +29,7 @@ export function isArcMapView(source) {
 }
 
 function grayscale(source) {
-  const canvas = document.createElement('canvas');
+  const canvas = analysisCanvas();
   canvas.width = WIDTH; canvas.height = HEIGHT;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(source, 0, 0, WIDTH, HEIGHT);
@@ -117,7 +121,7 @@ export function matchMapFrames(baseSource, currentSource) {
 
 export function detectPlayerArrow(source) {
   const width = source.width; const height = source.height;
-  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  const canvas = analysisCanvas(); canvas.width = width; canvas.height = height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(source, 0, 0);
   const pixels = context.getImageData(0, 0, width, height).data;

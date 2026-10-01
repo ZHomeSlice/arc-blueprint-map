@@ -32,10 +32,20 @@ try {
     surface: document.querySelector('#preview-details').textContent,
     hint: document.querySelector('#preview-hint').textContent,
   }));
-  if (!sharing.visible || sharing.width !== 640 || sharing.height !== 360 || !sharing.surface.includes('Entire Screen')) {
+  if (sharing.visible || sharing.width !== 640 || sharing.height !== 360 || !sharing.surface.includes('Entire Screen')) {
     throw new Error(`Preview failed: ${JSON.stringify(sharing)}`);
   }
-  console.log('sharing', JSON.stringify(sharing));
+  await page.locator('#show-preview').check();
+  if (!await page.locator('#preview-panel').isVisible()) throw new Error('Preview toggle did not show the live stream');
+  await page.locator('#show-preview').uncheck();
+  if (await page.locator('#preview-panel').isVisible()) throw new Error('Preview toggle did not hide the live stream');
+  await page.locator('summary').filter({ hasText: 'Capture troubleshooting' }).click();
+  await page.locator('#pause-scanning').check();
+  const time = await page.locator('#live-preview').evaluate(video => video.currentTime);
+  await page.waitForTimeout(1200);
+  if (await page.locator('#live-preview').evaluate(video => video.currentTime) <= time) throw new Error('Pause scanning stopped sharing');
+  await page.locator('#pause-scanning').uncheck();
+  console.log('Sharing with hidden preview, preview toggling, and pause while stream stays live passed', JSON.stringify(sharing));
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   const stopped = await page.evaluate(() => ({
     hidden: document.querySelector('#preview-panel').hidden,

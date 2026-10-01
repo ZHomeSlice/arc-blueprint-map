@@ -46,3 +46,5 @@
 .map-filter-sources input[type=checkbox],.map-filter-rarities input[type=checkbox]{width:auto;min-width:0;flex:none;accent-color:#62c1a2}
 .community-controls{display:grid;gap:8px}.community-controls .hint{margin:0;overflow-wrap:anywhere}.community-controls .button{display:block;width:100%;margin:0;text-align:center}.community-controls>label:not(.button){margin:5px 0 0}.community-controls select{width:100%}
 .map-content{z-index:0}#pins{position:absolute;z-index:2;inset:0;transform-origin:0 0}.pin-spider-lines{z-index:1}.map .pin.hover-stable,.map .pin:focus-visible{scale:1;filter:brightness(1.2);outline:2px solid #fff0b8;outline-offset:4px;z-index:5}
+
+.card label.capture-control{display:flex;align-items:center;gap:8px;cursor:pointer}.card .capture-control input[type=checkbox]{width:auto;flex:none;margin:0;padding:0;accent-color:#62c1a2}

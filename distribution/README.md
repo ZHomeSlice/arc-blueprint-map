@@ -14,6 +14,8 @@ The source-code ZIP from GitHub requires Node.js 20 or newer. After installing N
 
 The app runs at `http://127.0.0.1:4177/` and binds only to your computer. Game frames are processed in the browser. Finds, sightings, and map images are kept in that browser's local storage. Use **Export JSON** to back up your data or move it to another browser. Personal findings do not sync automatically.
 
+Capture requests 2 FPS and at most 1600×900. Routine scanning checks small container and map patches; blueprint detection uses the upper-left quarter when a container opens. Text recognition runs only when a visible container has a recent blueprint needing a name. Full-frame processing is reserved for discovery snapshots, map location matching, and manual captures. Stopping capture releases scanning buffers and text-recognition resources.
+
 To share confirmed finds, check **Share** beside each find, enter your in-game name, and select **Copy blueprint JSON and open Form**. Paste the JSON into the prefilled Google Form. This sends names, map and floor, positions, times, and a sortable reliability estimate; it sends no screenshots or map images. Download the community CSV from the link in the app and import it separately from your own finds. Community pins can be filtered by player, date, and reliability.
 
 ## Current limits
@@ -26,3 +28,5 @@ To share confirmed finds, check **Share** beside each find, enter your in-game n
 ## Source and credits
 
 Run `node server.mjs` to start from source, or `node --test` for the focused tests. No package installation is needed. See [third-party credits](THIRD-PARTY.md) for bundled maps, item art, OCR, and Node.js in the portable download.
+
+Map searches and blueprint icon scoring run in a background worker. The live preview starts hidden; select **Show live preview** when needed. **Capture troubleshooting → Pause scanning (keep sharing)** stops automatic analysis without ending screen sharing, so you can check whether mouse stalls come from scanning or from sharing. **Stop** releases both analysis workers and the shared stream. Prefer **Window → ARC Raiders** in the share picker.

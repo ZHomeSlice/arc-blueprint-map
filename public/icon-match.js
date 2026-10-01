@@ -1,3 +1,4 @@
+import { analysisCanvas, loadAnalysisImage, requestPageAsset } from './analysis-image.js';
 // Compare a blueprint item's in-game tile with the local catalog artwork.
 // Only strong, distinct matches are named automatically; OCR can still name
 // items whose angle or size does not match the catalog icon well enough.
@@ -18,7 +19,7 @@ const inGameReferences = [
 let referencePromise;
 
 function imageData(source, width, height, crop) {
-  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  const canvas = analysisCanvas(); canvas.width = width; canvas.height = height;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(source, ...crop, 0, 0, width, height);
   return context.getImageData(0, 0, width, height).data;
@@ -58,13 +59,29 @@ function templatesFor(image) {
   return result;
 }
 
+export async function prepareIconEntry(entry, isActive = () => true, loading = null) {
+  if (!isActive()) throw new DOMException('Image analysis cancelled.', 'AbortError');
+  const image = await (loading || loadAnalysisImage(entry.icon));
+  if (!isActive()) throw new DOMException('Image analysis cancelled.', 'AbortError');
+  // Yield between catalog entries even when their images are already cached.
+  await new Promise(resolve => setTimeout(resolve, 0));
+  if (!isActive()) throw new DOMException('Image analysis cancelled.', 'AbortError');
+  try { return { name: entry.name, icon: entry.icon, templates: templatesFor(image) }; }
+  finally { image.close?.(); }
+}
+
+export async function prepareReferenceEntry(entry) {
+  const image = await loadAnalysisImage(entry.icon);
+  try { return { name: entry.name, pixels: imageData(image, 50, 45, [0, 0, image.width, image.height]) }; }
+  finally { image.close?.(); }
+}
+
 async function catalog() {
   if (!catalogPromise) catalogPromise = (async () => {
     const entries = await loadBlueprintCatalog();
     const loaded = await Promise.all(entries.map(async entry => {
       try {
-        const image = new Image(); image.src = entry.icon; await image.decode();
-        return { name: entry.name, icon: entry.icon, templates: templatesFor(image) };
+        return typeof document === 'undefined' ? await requestPageAsset('icon-entry', entry) : await prepareIconEntry(entry);
       } catch { return null; }
     }));
     return loaded.filter(Boolean);
@@ -74,8 +91,7 @@ async function catalog() {
 
 async function references() {
   if (!referencePromise) referencePromise = Promise.all(inGameReferences.map(async entry => {
-    const image = new Image(); image.src = entry.icon; await image.decode();
-    return { name: entry.name, pixels: imageData(image, 50, 45, [0, 0, image.width, image.height]) };
+    return typeof document === 'undefined' ? requestPageAsset('reference-entry', entry) : prepareReferenceEntry(entry);
   }));
   return referencePromise;
 }
@@ -160,6 +176,8 @@ async function rankTarget(target, limit = 3) {
   return matches.slice(0, limit);
 }
 
+export const rankBlueprintPixels = rankTarget;
+
 export async function rankBlueprintIcons(frame, slot) {
   if (!Number.isInteger(slot) || slot < 1 || slot > 8) return [];
   const column = (slot - 1) % 4, row = Math.floor((slot - 1) / 4);
@@ -172,7 +190,7 @@ export async function rankBlueprintPreview(preview, limit = 3) {
   return rankTarget(imageData(preview, 100, 90, [0, 0, preview.width * 100 / 105, preview.height * 90 / 108]), limit);
 }
 
-function confidentMatch(matches, minimumMargin = 0.05) {
+export function confidentMatch(matches, minimumMargin = 0.05) {
   const [first, second] = matches;
   if (!first || first.score < 0.72 || first.score - (second?.score || 0) < minimumMargin) return null;
   return { name: first.name, score: first.score, margin: first.score - (second?.score || 0) };

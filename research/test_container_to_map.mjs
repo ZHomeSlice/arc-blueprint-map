@@ -3,11 +3,13 @@ import { chromium } from 'file:///C:/Users/zhome/.cache/codex-runtimes/codex-pri
 
 const folder = 'C:/Program Files (x86)/Steam/userdata/297991134/760/remote/1808500/screenshots/';
 const inventory = await readFile(folder + '20260928142439_1.jpg');
+const secondBlueprint = await readFile(folder + '20260927195813_1.jpg');
 const map = await readFile(folder + '20260928142435_1.jpg');
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 try {
   const page = await browser.newPage();
   await page.route('**/test-seeker-inventory.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: inventory }));
+  await page.route('**/test-second-blueprint.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: secondBlueprint }));
   await page.route('**/test-seeker-map.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: map }));
   await page.route('**/vendor/tesseract.min.js', route => route.fulfill({ status: 200, contentType: 'text/javascript',
     body: 'window.Tesseract={createWorker:async()=>({recognize:async image=>({data:{text:image.width===960&&image.height===150?"STELLA MONTIS":window.testOcrText}})})};' }));
@@ -20,6 +22,12 @@ try {
         canvas.getContext('2d').drawImage(image, 0, 0, 1600, 900);
       };
       await window.testSetFrame('/test-seeker-inventory.jpg');
+      // The original fixture contains only one blueprint. Add a distinct,
+      // real Defibrillator tile to slot two to exercise a two-item container.
+      const second = new Image(); second.src = '/test-second-blueprint.jpg'; await second.decode();
+      canvas.getContext('2d').drawImage(second, 390 / 2048 * second.width, 315 / 1152 * second.height,
+        105 / 2048 * second.width, 108 / 1152 * second.height,
+        280 / 2048 * canvas.width, 315 / 1152 * canvas.height, 105 / 2048 * canvas.width, 108 / 1152 * canvas.height);
       return canvas.captureStream(15);
     };
   });
@@ -27,8 +35,8 @@ try {
   await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.some(s => s.name === 'SEEKER GRENADE'));
-  await page.evaluate(() => { window.testOcrText = 'TRAILBLAZER BLUEPRINT'; });
-  await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.some(s => s.name === 'TRAILBLAZER'));
+  await page.evaluate(() => { window.testOcrText = 'DEFIBRILLATOR BLUEPRINT'; });
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.some(s => s.name === 'DEFIBRILLATOR'));
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.map(s => ({ name: s.name, position: s.position })));
   if (before.some(s => s.position)) throw new Error(`An inventory frame was treated as a map: ${JSON.stringify(before)}`);
   await page.evaluate(() => window.testSetFrame('/test-seeker-map.jpg'));
@@ -65,4 +73,11 @@ try {
     throw new Error(`Saved map screenshot did not repair both sightings: ${JSON.stringify(corrected)}`);
   }
   console.log(JSON.stringify(after));
+} catch (error) {
+  for (const page of browser.contexts().flatMap(context => context.pages())) {
+    console.error('Container-to-map failure:', await page.evaluate(() => ({ status: document.querySelector('#status')?.textContent,
+      ocr: document.querySelector('#ocr-text')?.textContent,
+      sightings: JSON.parse(localStorage.getItem('arc-blueprint-map-v1'))?.sightings.map(({ name, nameSource, position }) => ({ name, nameSource, position })) })));
+  }
+  throw error;
 } finally { await browser.close(); }

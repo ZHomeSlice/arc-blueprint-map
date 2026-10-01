@@ -1,17 +1,17 @@
 import { blueprintFromText, clamp01, createFind, deduplicateBlueprintEntries, isOwnCommunityDuplicate,
   removeRecentDuplicateDiscoveries } from './logic.js';
-import { detectPlayerArrow, isArcMapView, matchMapFrames } from './map-match.js';
-import { matchFullMap, mapPatchAppearance, pointOnFullMap } from './full-map-match.js';
-import { cropMapTitle, mapFamilyFromTitle, selectMapCandidate } from './map-detect.js';
+import { isArcMapView } from './map-match.js';
+import { cropMapTitle, mapFamilyFromTitle } from './map-detect.js';
 import { cropBlueprintName } from './ocr-crop.js';
 import { mapPresets, presetForMap, presetForMode, presetMapData } from './map-presets.js';
-import { detectBlueprintTiles, isLootPanelVisible } from './blueprint-visual.js';
+import { detectBlueprintTiles } from './blueprint-visual.js';
 import { LootWindow } from './loot-window.js';
 import { COMMUNITY_STORAGE_KEY, buildSharePayload, importCommunityCsv, prefilledFormUrl, reliabilityForFind } from './community-share.js';
-import { identifyBlueprintIcon, identifyBlueprintPreview, loadBlueprintCatalog, rankBlueprintIcons, rankBlueprintPreview } from './icon-match.js';
+import { loadBlueprintCatalog, rankBlueprintIcons, rankBlueprintPreview, confidentMatch, matchCapturedMap, stopImageAnalysis } from './analysis-client.js';
 import { tileSignature, tileSimilarity } from './tile-feedback.js';
 import { rarityForBlueprint } from './blueprint-rarity.js';
 import { layoutSpiderGroups } from './spider-layout.js';
+import { CaptureRegions } from './capture-regions.js';
 
 const $ = id => document.getElementById(id);
 const storageKey = 'arc-blueprint-map-v1';
@@ -31,7 +31,7 @@ const ui = {
   mapFilterApply: $('map-filter-apply'),
   blueprintName: $('blueprint-name'), save: $('save-find'), list: $('find-list'), count: $('find-count'),
   start: $('start-capture'), stop: $('stop-capture'), capturePosition: $('capture-position'), autoLocate: $('auto-locate'), mapScreenshot: $('saved-map-screenshot'),
-  previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
+  showPreview: $('show-preview'), pauseScanning: $('pause-scanning'), previewPanel: $('preview-panel'), previewVideo: $('live-preview'), previewDetails: $('preview-details'), previewHint: $('preview-hint'),
   framePanel: $('frame-panel'), frame: $('frame-canvas'), useFrameMap: $('use-frame-map'), status: $('status'), dot: $('status-dot'),
   ocrText: $('ocr-text'), note: $('capture-note'), pinHelp: $('pin-help'), export: $('export-data'), import: $('import-data'), screenshotFinds: $('add-screenshot-finds'),
   lastScan: $('last-scan'), sightingCount: $('sighting-count'), sightingList: $('sighting-list'),
@@ -51,7 +51,12 @@ let draftPosition = null;
 let mediaStream = null;
 let video = null;
 let worker = null;
-let scanTimer = null;
+let workerPromise = null;
+let captureGeneration = 0;
+let analysisGeneration = 0;
+let lastMapAttempt = 0;
+let captureRegions = null;
+let lastOcrAt = 0;
 let scanning = false;
 let visualTimer = null;
 let visualScanning = false;
@@ -61,8 +66,6 @@ let mapWasOpen = false;
 let mapSessionMatched = false;
 let lastCandidate = '';
 let lastCandidateSightingId = '';
-let cachedBase = null;
-let cachedBaseUrl = '';
 let selectedSightingId = null;
 let selectedMapPin = null;
 let editingMapPin = false;
@@ -78,6 +81,7 @@ let spiderExitTimer = null;
 let groupChooserOpen = false;
 let choosingGroupMember = false;
 const signatureCache = new Map();
+const iconAnalysisPending = new Set();
 const unidentifiedBlueprint = 'Unidentified blueprint';
 const suppliedFinds = [
   { id: 'screenshot-20260927195813-defibrillator', name: 'Defibrillator', x: 0.188718, y: 0.553270,
@@ -116,6 +120,8 @@ function loadData() {
 
 function persist() {
   removeRecentDuplicateDiscoveries(data);
+  const activeSignatures = new Set([...data.sightings, ...data.dismissedTiles].map(sighting => sighting.id));
+  for (const id of signatureCache.keys()) if (!activeSignatures.has(id)) signatureCache.delete(id);
   try { localStorage.setItem(storageKey, JSON.stringify(data)); }
   catch { setStatus('Browser storage is full. Export your finds now.'); }
 }
@@ -966,14 +972,19 @@ function applyIconMatch(sighting, match) {
 }
 
 async function recognizeSightingIcon(sighting, frame, tile) {
+  iconAnalysisPending.add(sighting.id);
+  const epoch = analysisGeneration;
   try {
-    const match = await identifyBlueprintIcon(frame, tile.slot);
+    const candidates = await rankBlueprintIcons(frame, tile.slot);
+    if (epoch !== analysisGeneration) return;
+    const match = confidentMatch(candidates);
     if (match) applyIconMatch(sighting, match);
     else {
-      sighting.iconCandidates = await rankBlueprintIcons(frame, tile.slot);
+      sighting.iconCandidates = candidates;
       persist(); render();
     }
-  } catch (error) { console.warn('Blueprint icon match unavailable:', error); }
+  } catch (error) { if (error.name !== 'AbortError') console.warn('Blueprint icon match unavailable:', error); }
+  finally { if (epoch === analysisGeneration) iconAnalysisPending.delete(sighting.id); }
 }
 
 async function reviewStoredSightingIcon(sighting) {
@@ -981,10 +992,11 @@ async function reviewStoredSightingIcon(sighting) {
   if (sighting.name !== unidentifiedBlueprint || !sighting.tilePreview || sighting.dismissed) return;
   try {
     const image = new Image(); image.src = sighting.tilePreview; await image.decode();
-    const match = await identifyBlueprintPreview(image);
+    const candidates = await rankBlueprintPreview(image);
+    const match = confidentMatch(candidates, 0.04);
     if (match) applyIconMatch(sighting, match);
     else {
-      sighting.iconCandidates = await rankBlueprintPreview(image);
+      sighting.iconCandidates = candidates;
       persist(); render();
     }
   } catch (error) { console.warn('Could not inspect saved blueprint icon:', error); }
@@ -1024,7 +1036,18 @@ async function matchesDismissedTile(current) {
   return false;
 }
 
-async function recordSighting(name, frame, tile = null, targetSighting = null) {
+async function recordSighting(name, frame, tile = null, targetSighting = null, generation = captureGeneration, epoch = null) {
+  if (generation !== captureGeneration || (epoch !== null && epoch !== analysisGeneration)) return false;
+  // A later name read updates the original sighting, keeping its discovery
+  // screenshot rather than capturing whatever happens to be visible now.
+  if (targetSighting && name !== unidentifiedBlueprint) {
+    targetSighting.name = name;
+    targetSighting.nameSource = 'OCR';
+    selectedSightingId = targetSighting.id;
+    saveLocatedSighting(targetSighting);
+    persist(); render();
+    return true;
+  }
   const now = Date.now();
   const windowMs = name === unidentifiedBlueprint ? 90 * 1000 : 5 * 60 * 1000;
   const tilePreview = blueprintTilePreview(frame, tile);
@@ -1033,10 +1056,12 @@ async function recordSighting(name, frame, tile = null, targetSighting = null) {
   if (name === unidentifiedBlueprint) {
     if (!tilePreview || recent.some(sighting => !sighting.tilePreview)) return false;
     const signature = await tileSignature(tilePreview);
+    if (generation !== captureGeneration || (epoch !== null && epoch !== analysisGeneration)) return false;
     for (const sighting of recent) {
       if (tileSimilarity(signature, await cachedSignature(sighting)) >= 0.96) return false;
     }
     if (await matchesDismissedTile(signature)) return false;
+    if (generation !== captureGeneration || (epoch !== null && epoch !== analysisGeneration)) return false;
   }
   const snapshot = document.createElement('canvas');
   const scale = Math.min(1, 960 / frame.width);
@@ -1086,13 +1111,6 @@ async function imageToDataUrl(file) {
   return { image: canvas.toDataURL('image/jpeg', 0.78), ratio: canvas.width / canvas.height };
 }
 
-async function baseImage(url) {
-  if (cachedBase && cachedBaseUrl === url) return cachedBase;
-  const image = new Image(); image.src = url; await image.decode();
-  cachedBase = image; cachedBaseUrl = url;
-  return image;
-}
-
 function takeFrame(show = true) {
   if (!video || video.readyState < 2) { setStatus('Start capture and choose the game window'); return false; }
   const scale = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
@@ -1106,50 +1124,45 @@ function takeFrame(show = true) {
 
 async function ensureWorker() {
   if (worker) return worker;
+  if (workerPromise) return workerPromise;
   if (!window.Tesseract) throw new Error('OCR script is unavailable. Check the bundled vendor files.');
+  const generation = analysisGeneration;
   setStatus('Loading OCR model…', true);
-  worker = await window.Tesseract.createWorker('eng', 1, {
+  const pending = window.Tesseract.createWorker('eng', 1, {
     workerPath: '/vendor/worker.min.js',
     corePath: '/vendor/tesseract-core-simd-lstm.wasm.js',
     langPath: '/vendor',
     logger: progress => {
-      if (progress.status && progress.progress < 1) setStatus(`${progress.status} ${Math.round(progress.progress * 100)}%`, true);
+      if (generation === analysisGeneration && progress.status && progress.progress < 1)
+        setStatus(`${progress.status} ${Math.round(progress.progress * 100)}%`, true);
     },
   });
-  return worker;
+  workerPromise = pending;
+  try {
+    const created = await pending;
+    if (generation !== analysisGeneration) {
+      await created.terminate?.();
+      throw new Error('Capture session ended while OCR was loading.');
+    }
+    worker = created;
+    return worker;
+  } finally { if (workerPromise === pending) workerPromise = null; }
 }
 
 async function findMapPosition(frame) {
   if (!isArcMapView(frame)) return { error: 'Open the in-game map to capture a position.' };
-  const arrow = detectPlayerArrow(frame);
-  if (!arrow) return { error: 'The player arrow is not clear on this map view. Keep the map open or save a screenshot.' };
+  const epoch = analysisGeneration;
   const mapData = data.maps[currentMap];
   if (mapData?.image && !presetForMap(mapData)) {
-    const base = await baseImage(mapData.image);
-    const match = matchMapFrames(base, frame);
-    if (!match) return { error: 'Could not align the custom map screenshot. Check zoom, crop, and layer.' };
-    const position = { x: arrow.x - match.dx / match.width, y: arrow.y - match.dy / match.height };
-    if (position.x < 0 || position.x > 1 || position.y < 0 || position.y > 1) return { error: 'The player position falls outside the custom map.' };
-    return { position, anchors: match.anchors, mapName: currentMap };
+    return matchCapturedMap(frame, { customImage: mapData.image, mapName: currentMap });
   }
-
   const ocr = await ensureWorker();
+  if (epoch !== analysisGeneration) throw new DOMException('Scanning paused.', 'AbortError');
   const titleResult = await ocr.recognize(cropMapTitle(frame));
+  if (epoch !== analysisGeneration) throw new DOMException('Scanning paused.', 'AbortError');
   const family = mapFamilyFromTitle(titleResult.data.text);
   if (!family) return { error: 'The map name is not readable yet. Keep the in-game map open or use a saved map screenshot.' };
-  const candidates = [];
-  for (const preset of mapPresets.filter(entry => entry.family === family)) {
-    const base = await baseImage(preset.image);
-    const match = matchFullMap(base, frame, { scales: preset.scales, minScore: -1 });
-    if (!match) continue;
-    const position = pointOnFullMap(match, arrow);
-    if (position.x < 0 || position.x > 1 || position.y < 0 || position.y > 1) continue;
-    candidates.push({ preset, match, position, appearance: mapPatchAppearance(base, frame, match) });
-  }
-  const selected = selectMapCandidate(candidates);
-  if (selected.error) return selected;
-  return { position: selected.position, confidence: selected.match.score,
-    mapName: selected.preset.name, presetId: selected.preset.id, appearance: selected.appearance.mae };
+  return matchCapturedMap(frame, { family });
 }
 
 function activateMatchedMap(suggestion) {
@@ -1166,32 +1179,42 @@ function applyMapSuggestion(suggestion, frame) {
   setStatus(`Located with ${detail}. Review pin before saving.`, Boolean(mediaStream));
 }
 
-async function scanVisualFrame() {
-  if (!mediaStream || visualScanning) return;
+async function scanVisualFrame(generation = captureGeneration) {
+  if (generation !== captureGeneration || !mediaStream || ui.pauseScanning.checked || visualScanning || video?.readyState < 2) return;
+  const epoch = analysisGeneration;
+  const regions = captureRegions;
   visualScanning = true;
   try {
-    const frame = takeFrame(false);
-    if (!frame) return;
-    const image = frame.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, frame.width, frame.height);
-    const panelVisible = isLootPanelVisible(image);
-    const tiles = panelVisible ? detectBlueprintTiles(image, 'CONTAINER LOADOUT') : [];
-    const freshSlots = lootWindow.observe(panelVisible, tiles.map(tile => tile.slot), Date.now());
+    const panelVisible = regions.lootPanelVisible(video);
+    const now = Date.now();
+    const lootScanActive = panelVisible && (lootWindow.openedAt === null || now - lootWindow.openedAt <= lootWindow.durationMs);
+    const tiles = lootScanActive ? regions.blueprintTiles(video) : [];
+    const freshSlots = lootWindow.observe(panelVisible, tiles.map(tile => tile.slot), now);
     const newTiles = tiles.filter(tile => freshSlots.includes(tile.slot));
+    const frame = newTiles.length ? takeFrame(false) : null;
     for (const tile of newTiles) {
-      if (!await recordSighting(unidentifiedBlueprint, frame, tile)) continue;
+      if (!await recordSighting(unidentifiedBlueprint, frame, tile, null, generation, epoch)) continue;
+      if (generation !== captureGeneration || epoch !== analysisGeneration) return;
       recognizeSightingIcon(data.sightings[0], frame, tile);
       ui.pinHelp.textContent = 'Blueprint tile seen. Hover for its name and open the in-game map soon to locate it.';
       setStatus(`Blueprint-like tile in container slot ${tile.slot}`, true);
     }
-    const mapVisible = isArcMapView(frame);
-    if (!mapVisible || !mapWasOpen) mapSessionMatched = false;
+    // Name reads are independent of visual scanning so a slow OCR job cannot
+    // prevent detecting the map that appears immediately after a container.
+    if (panelVisible && Date.now() - lastOcrAt >= 1000) scanOnce(generation);
+    const mapVisible = !panelVisible && regions.mapVisible(video);
+    if (!mapVisible || !mapWasOpen) { mapSessionMatched = false; lastMapAttempt = 0; }
     mapWasOpen = mapVisible;
     const pending = data.sightings.filter(sighting => !sighting.dismissed && !sighting.savedFindId && !sighting.position &&
       Date.now() - Date.parse(sighting.seenAt) < 60 * 1000);
     if (!pending.length) return;
-    if (!mapVisible || mapSessionMatched) return;
+    if (!mapVisible || mapSessionMatched || Date.now() - lastMapAttempt < 1500) return;
+    lastMapAttempt = Date.now();
+    const mapFrame = takeFrame(false);
+    if (!mapFrame) return;
     setStatus('In-game map detected. Reading its name and matching your position…', true);
-    const suggestion = await findMapPosition(frame);
+    const suggestion = await findMapPosition(mapFrame);
+    if (generation !== captureGeneration || epoch !== analysisGeneration) return;
     if (!suggestion.position) {
       setStatus(suggestion.error || 'Map position did not match. Keep the map open or use Locate on map.', true);
       return;
@@ -1209,34 +1232,50 @@ async function scanVisualFrame() {
     mapSessionMatched = true;
     persist(); render();
     const selected = sameContainer.find(sighting => sighting.id === selectedSightingId) || sameContainer[0];
-    if (selectedSightingId === selected.id && !selected.savedFindId) applyMapSuggestion(suggestion, frame);
+    if (selectedSightingId === selected.id && !selected.savedFindId) applyMapSuggestion(suggestion, mapFrame);
     desktopAlert(`Location captured: ${selected.name}`, `${suggestion.mapName} map position is ready to review.`, selected.tilePreview);
     if (sameContainer.length > 1) setStatus(`Map location captured for ${sameContainer.length} blueprints. Review their pins.`, true);
   } catch (error) {
+    if (generation !== captureGeneration || epoch !== analysisGeneration) return;
     setStatus(`Visual scan error: ${error.message}`);
     console.error(error);
-  } finally { visualScanning = false; }
+  } finally { if (generation === captureGeneration && epoch === analysisGeneration) visualScanning = false; }
 }
 
-async function scanOnce() {
-  if (!mediaStream || scanning) return;
+async function scanOnce(generation = captureGeneration) {
+  if (generation !== captureGeneration || !mediaStream || ui.pauseScanning.checked || scanning) return;
+  const pendingTiles = data.sightings.filter(sighting => !sighting.dismissed && !sighting.savedFindId &&
+    (sighting.name === unidentifiedBlueprint || sighting.nameSource === 'catalog icon') && sighting.tilePreview &&
+    Date.now() - Date.parse(sighting.seenAt) < 60 * 1000);
+  if (!pendingTiles.length || (pendingTiles.length > 1 && pendingTiles.some(sighting => iconAnalysisPending.has(sighting.id)))) return;
+  const epoch = analysisGeneration;
   scanning = true;
+  lastOcrAt = Date.now();
   try {
-    const frame = takeFrame(false);
-    if (!frame) return;
+    // Copy only the upper-left quarter directly from the shared video. This
+    // buffer is held until OCR finishes and is never used by the visual scan.
+    const crop = cropBlueprintName(video, captureRegions.canvas('ocr'));
     const ocr = await ensureWorker();
-    const result = await ocr.recognize(cropBlueprintName(frame));
+    if (generation !== captureGeneration || epoch !== analysisGeneration) return;
+    const result = await ocr.recognize(crop);
+    if (generation !== captureGeneration || epoch !== analysisGeneration) return;
     const text = result.data.text || '';
     ui.ocrText.textContent = text.trim() || '(No readable text)';
     ui.lastScan.textContent = `Last scanned ${new Date().toLocaleTimeString()}`;
     const candidate = blueprintFromText(text);
-    let message = 'Watching game window';
-    const pendingTile = data.sightings.find(sighting => !sighting.dismissed && !sighting.savedFindId &&
-      (sighting.name === unidentifiedBlueprint || sighting.nameSource === 'catalog icon') && sighting.tilePreview &&
+    // The tooltip names the hovered item, which need not be the last slot
+    // detected. Prefer its catalog match and do not apply the same tooltip to
+    // another item that still needs a name.
+    const recentTiles = data.sightings.filter(sighting => !sighting.dismissed && !sighting.savedFindId && sighting.tilePreview &&
       Date.now() - Date.parse(sighting.seenAt) < 60 * 1000);
+    const pendingTile = candidate && (recentTiles.find(sighting => sighting.name.toLowerCase() === candidate.toLowerCase()) ||
+      recentTiles.find(sighting => sighting.name === unidentifiedBlueprint) ||
+      (recentTiles.length === 1 ? recentTiles[0] : null));
+    let message = 'Watching game window';
     if (candidate && pendingTile && (candidate !== lastCandidate || pendingTile.id !== lastCandidateSightingId)) {
       lastCandidate = candidate; lastCandidateSightingId = pendingTile.id;
-      await recordSighting(candidate, frame, null, pendingTile);
+      await recordSighting(candidate, null, null, pendingTile, generation, epoch);
+      if (generation !== captureGeneration || epoch !== analysisGeneration) return;
       if (!ui.blueprintName.value.trim()) {
         ui.blueprintName.value = candidate;
         message = `Possible blueprint: ${candidate}`;
@@ -1246,31 +1285,46 @@ async function scanOnce() {
     }
     setStatus(message, true);
   } catch (error) {
+    if (generation !== captureGeneration || epoch !== analysisGeneration) return;
     setStatus(`OCR error: ${error.message}`);
     console.error(error);
   } finally {
-    scanning = false;
-    if (mediaStream) scanTimer = setTimeout(scanOnce, 1000);
+    if (generation === captureGeneration && epoch === analysisGeneration) scanning = false;
   }
 }
 
 async function startCapture() {
+  if (mediaStream || ui.start.disabled) return;
   if (!navigator.mediaDevices?.getDisplayMedia) {
     setStatus('Screen sharing is unavailable in this browser. Open http://127.0.0.1:4177/ in Chrome or Edge.');
     return;
   }
   let newStream = null;
+  const generation = ++captureGeneration;
+  ui.start.disabled = true;
   try {
-    setStatus('Choose Entire Screen if ARC Raiders is missing from the Window list.');
+    setStatus('Choose Window → ARC Raiders. Use Entire Screen if the game is missing.');
     newStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { displaySurface: 'monitor', frameRate: 15 },
+      video: { displaySurface: 'window', frameRate: 2, width: { ideal: 1600 }, height: { ideal: 900 } },
       monitorTypeSurfaces: 'include', selfBrowserSurface: 'exclude', audio: false,
     });
+    if (generation !== captureGeneration) { newStream.getTracks().forEach(track => track.stop()); return; }
+    const track = newStream.getVideoTracks()[0];
     video = ui.previewVideo;
+    ui.previewPanel.hidden = false;
     video.srcObject = newStream;
-    await video.play();
     mediaStream = newStream;
-    const track = mediaStream.getVideoTracks()[0];
+    ui.stop.disabled = false;
+    track.addEventListener('ended', () => {
+      if (generation === captureGeneration) stopCapture('Sharing ended. Select Start capture to choose a screen again.');
+    }, { once: true });
+    await video.play();
+    if (generation !== captureGeneration) { newStream.getTracks().forEach(track => track.stop()); return; }
+    // Some capture sources wait for another frame before resolving constraints.
+    // Apply limits after playback starts without blocking initialization or Stop.
+    track.applyConstraints({ frameRate: { max: 2 }, width: { max: 1600 }, height: { max: 900 } })
+      .catch(error => console.warn('Capture size/FPS limits unavailable; using requested capture settings:', error));
+    captureRegions = new CaptureRegions();
     const surface = track.getSettings().displaySurface;
     ui.previewDetails.textContent = `${surface === 'monitor' ? 'Entire Screen' : surface === 'window' ? 'Window' : surface === 'browser' ? 'Browser tab' : 'Shared display'} · ${video.videoWidth} × ${video.videoHeight}`;
     ui.previewHint.textContent = surface === 'monitor'
@@ -1278,28 +1332,41 @@ async function startCapture() {
       : surface === 'browser'
         ? 'This is a browser tab. Stop sharing and choose Entire Screen or the ARC Raiders window instead.'
         : 'You should see ARC Raiders here. If the preview is black, try borderless windowed mode or share Entire Screen while the game is visible.';
-    ui.previewPanel.hidden = false;
-    track.addEventListener('ended', () => stopCapture('Sharing ended. Select Start capture to choose a screen again.'), { once: true });
+    ui.previewPanel.hidden = !ui.showPreview.checked;
     ui.start.disabled = true; ui.stop.disabled = false;
-    setStatus(surface === 'browser' ? 'A browser tab is shared. Choose the game window or Entire Screen.' : 'Capture is live; watching for blueprints.', true);
-    visualTimer = setInterval(scanVisualFrame, 500);
-    scanVisualFrame();
-    scanOnce();
+    setStatus(ui.pauseScanning.checked ? 'Scanning paused; screen sharing is still active.' : surface === 'browser' ? 'A browser tab is shared. Choose the game window or Entire Screen.' : 'Capture is live; watching for blueprints.', true);
+    visualTimer = setInterval(() => scanVisualFrame(generation), 500);
+    scanVisualFrame(generation);
   } catch (error) {
     newStream?.getTracks().forEach(track => track.stop());
-    if (video) { video.srcObject = null; video = null; }
-    setStatus(error.name === 'NotAllowedError' ? 'Capture cancelled. Try Entire Screen if the game is missing from the picker.' : `Capture failed: ${error.message}`);
+    if (generation === captureGeneration) stopCapture(error.name === 'NotAllowedError'
+      ? 'Capture cancelled. Try Entire Screen if the game is missing from the picker.' : `Capture failed: ${error.message}`);
   }
 }
 
+function cancelScanning() {
+  analysisGeneration++;
+  stopImageAnalysis();
+  const oldWorker = worker; worker = null; workerPromise = null;
+  if (oldWorker?.terminate) Promise.resolve().then(() => oldWorker.terminate()).catch(error => console.warn('OCR cleanup failed:', error));
+  scanning = false; visualScanning = false; lastOcrAt = 0; lastMapAttempt = 0;
+  iconAnalysisPending.clear();
+}
+
 function stopCapture(message = 'Capture stopped') {
-  clearTimeout(scanTimer);
+  cancelScanning();
+  captureGeneration++;
   clearInterval(visualTimer);
+  visualTimer = null;
+  scanning = false; visualScanning = false; lastOcrAt = 0;
+  lastCandidate = ''; lastCandidateSightingId = '';
   const oldStream = mediaStream; mediaStream = null;
   mapWasOpen = false; mapSessionMatched = false;
   lootWindow.reset();
   oldStream?.getTracks().forEach(track => track.stop());
-  if (video) { video.srcObject = null; video = null; }
+  if (video) { video.pause(); video.srcObject = null; video = null; }
+  captureRegions?.release(); captureRegions = null;
+  signatureCache.clear();
   ui.previewPanel.hidden = true;
   ui.start.disabled = false; ui.stop.disabled = true;
   setStatus(message);
@@ -1450,6 +1517,13 @@ ui.mapImage.addEventListener('change', async () => {
 });
 ui.start.addEventListener('click', startCapture);
 ui.stop.addEventListener('click', () => stopCapture());
+ui.showPreview.addEventListener('change', () => { ui.previewPanel.hidden = !mediaStream || !ui.showPreview.checked; });
+ui.pauseScanning.addEventListener('change', () => {
+  cancelScanning();
+  if (!mediaStream) return;
+  setStatus(ui.pauseScanning.checked ? 'Scanning paused; screen sharing is still active.' : 'Capture is live; watching for blueprints.', true);
+  if (!ui.pauseScanning.checked) scanVisualFrame();
+});
 function updateAlertPermission() {
   ui.enableAlerts.textContent = !('Notification' in window) ? 'Windows notifications unavailable in this browser'
     : Notification.permission === 'granted' ? 'Windows notifications enabled'
@@ -1679,10 +1753,11 @@ async function recheckLatestSighting() {
   try {
     if (sighting.tilePreview) {
       const preview = new Image(); preview.src = sighting.tilePreview; await preview.decode();
-      const match = await identifyBlueprintPreview(preview);
+      const candidates = await rankBlueprintPreview(preview);
+      const match = confidentMatch(candidates, 0.04);
       if (match) applyIconMatch(sighting, match);
       else {
-        sighting.iconCandidates = await rankBlueprintPreview(preview);
+        sighting.iconCandidates = candidates;
         persist(); render();
       }
       return;
