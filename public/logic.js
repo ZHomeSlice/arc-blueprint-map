@@ -1,5 +1,15 @@
-export function blueprintFromText(text) {
+export function blueprintFromText(text, catalogNames = []) {
   const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const normalize = value => String(value).toUpperCase().replace(/\b(?:IL|I1|LI|1I)\b/g, 'II')
+    .replace(/[^A-Z0-9]+/g, ' ').trim();
+  // OCR merges the title with container text and mistakes II for Il.
+  // Read known titles beside the category label before the description.
+  const titleLines = lines.filter((line, index) => /blueprint/i.test(line) ||
+    /^blueprint\s*[:\-]?\s*$/i.test(lines[index + 1] || '') ||
+    /^blueprint\s*[:\-]?\s*$/i.test(lines[index - 1] || ''));
+  const known = catalogNames.filter(name => titleLines.some(line =>
+    ` ${normalize(line)} `.includes(` ${normalize(name)} `)));
+  if (known.length) return known.sort((a, b) => b.length - a.length)[0].toUpperCase();
   const clean = value => value.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').replace(/\s+/g, ' ').trim();
   const valid = value => value.length >= 3 && value.length <= 70 && (value.match(/[a-z]/gi) || []).length >= 3 && !/^(already learned|ping item)$/i.test(value);
 
@@ -13,10 +23,10 @@ export function blueprintFromText(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!/^blueprint\s*[:\-]?\s*$/i.test(line)) continue;
-    const next = clean(lines[i + 1] || '');
-    if (valid(next)) return next.replace(/\s+blueprint$/i, '');
     const previous = clean(lines[i - 1] || '');
     if (valid(previous)) return previous;
+    const next = clean(lines[i + 1] || '');
+    if (valid(next)) return next.replace(/\s+blueprint$/i, '');
   }
   return null;
 }
@@ -78,7 +88,7 @@ export function deduplicateBlueprintEntries(entries, timestampKey = 'foundAt', w
 
 export function removeRecentDuplicateDiscoveries(data, windowMs = 60 * 1000) {
   if (!data || !Array.isArray(data.finds) || !Array.isArray(data.sightings)) return 0;
-  const activeSightings = data.sightings.filter(sighting => !sighting.dismissed);
+  const activeSightings = data.sightings.filter(sighting => !sighting.dismissed && !sighting.locationMissed);
   const cleanedSightings = deduplicateBlueprintEntries(activeSightings, 'seenAt', windowMs);
   const duplicateSightings = new Set(activeSightings.filter(sighting => !cleanedSightings.includes(sighting)));
   const removedFindIds = new Set();

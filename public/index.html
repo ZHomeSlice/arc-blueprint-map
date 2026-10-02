@@ -18,12 +18,7 @@
         <label for="preset-map">Built-in map and floor</label>
         <div class="row"><select id="preset-map" aria-label="Built-in map and floor"></select><button id="use-preset-map">Use map</button></div>
         <p class="hint">During capture, the tracker reads the in-game map name and chooses the matching map and floor when the image is clear. Use this menu to browse maps or correct a pin. Each floor keeps its own pins.</p>
-        <label for="map-name">Custom map name</label>
-        <div class="row"><input id="map-name" list="map-options" placeholder="For example: Buried City"><button id="use-map">Use map</button></div>
-        <button id="use-stella-upper" class="full">Use full Stella Montis upper map</button>
-        <datalist id="map-options"><option>Dam Battlegrounds</option><option>Buried City</option><option>Spaceport</option><option>Blue Gate</option><option>Stella Montis Upper</option><option>Stella Montis Lower</option><option>Riven Tides</option></datalist>
-        <label class="upload" for="map-image">Add a fixed map image</label><input type="file" id="map-image" accept="image/png,image/jpeg,image/webp" hidden>
-        <p class="hint">Use one fixed map image for all pins on this map. Images and finds stay in this browser.</p>
+        <p class="hint" id="data-cleanup-notice" hidden></p>
         <p class="hint" id="map-credit" hidden>Map artwork: <a id="map-credit-link" href="https://arcraiders.wiki/wiki/File:Stella_Montis_Upper_Level_Map.jpg" target="_blank" rel="noopener noreferrer">ARC Raiders Wiki / @Cartotect</a>. Game art © Embark Studios.</p>
       </section>
       <section class="card">
@@ -38,14 +33,30 @@
         <button id="enable-alerts" class="full">Enable Windows notifications</button>
         <p class="hint">Blueprint sightings and map locations appear in the tracker. Windows notifications are optional.</p>
         <p class="hint" id="capture-note">Press E to open a container. The scanner spots blueprints there; hover for the name. It reads the upper-left quarter only when a blueprint needs a name. Then press M and keep the in-game map open until the map name, floor, and location are captured. Uncertain floors stay unpinned for review. Frames stay local.</p>
+        <section class="recent-finds" aria-labelledby="recent-finds-title">
+          <h3 id="recent-finds-title">Finds · last 60 minutes <span id="recent-find-count">0</span></h3>
+          <p class="hint" id="recent-finds-empty">No saved blueprint finds in the last 60 minutes.</p>
+          <ul id="recent-find-list" aria-label="Blueprint finds from the last 60 minutes"></ul>
+        </section>
         <p class="hint" id="last-scan">No OCR scans yet</p>
         <details><summary>Last recognized text</summary><pre id="ocr-text">No scan yet</pre></details>
         <details open><summary>Blueprint sightings <span id="sighting-count">0</span></summary><ul id="sighting-list"></ul>
+          <details id="missed-locations" hidden><summary>Missed locations <span id="missed-count">0</span></summary><ul id="missed-list"></ul></details>
           <details id="reviewed-sightings" hidden><summary>Reviewed false alerts <span id="reviewed-count">0</span></summary><ul id="reviewed-list"></ul>
             <button id="forget-dismissed" type="button">Forget saved false-alert examples</button></details>
+          <button id="get-false-positive-feedback" class="feedback-link" type="button">Get false positive feedback</button>
+          <p id="feedback-help" class="hint">Downloads captured evidence and copies an AI-ready prompt. Paste the prompt into your AI chat and attach the downloaded JSON file.</p>
+          <textarea id="feedback-prompt" aria-label="False positive feedback prompt" readonly hidden></textarea>
+          <div id="sighting-review-notes" hidden>
+            <label for="sighting-review-note">Review note (optional)</label>
+            <textarea id="sighting-review-note" placeholder="What was this item? What made it look like a blueprint?"></textarea>
+            <p id="sighting-review-help" class="hint"></p>
+          </div>
           <img id="selected-blueprint-tile" alt="Captured blueprint icon from selected sighting" hidden>
           <div id="icon-candidates" hidden><strong>Possible blueprint icons — confirm visually</strong><div id="icon-candidate-list"></div></div>
-          <img id="sighting-preview" alt="Captured frame from selected blueprint sighting" hidden></details>
+          <img id="sighting-preview" alt="Captured frame from selected blueprint sighting" hidden>
+          <p id="sighting-map-status" class="hint" hidden></p>
+          <img id="sighting-map-preview" class="sighting-map-preview" alt="Latest captured map from selected blueprint sighting" hidden></details>
       </section>
       <section class="card">
         <h2>3. Save a find</h2>
@@ -54,9 +65,9 @@
         <div id="blueprint-list" class="blueprint-picker-list" role="listbox" aria-label="Blueprint search results"></div>
         <label for="blueprint-name">Selected blueprint</label><input id="blueprint-name" placeholder="Select a search result or confirm an icon" readonly>
         <div class="row"><button id="capture-position">Show current frame</button><button id="auto-locate">Locate on map</button></div>
-        <label class="upload" for="saved-map-screenshot">Correct selected sighting from a saved in-game map screenshot</label><input type="file" id="saved-map-screenshot" accept="image/png,image/jpeg,image/webp" hidden>
+        <label class="upload" for="saved-map-screenshot">Correct selected sighting or pin from a saved in-game map screenshot</label><input type="file" id="saved-map-screenshot" accept="image/png,image/jpeg,image/webp" hidden>
         <button id="save-find" class="primary full" disabled>Save pin</button>
-        <p class="hint" id="pin-help">Match a map frame automatically, or click the location on your fixed map image.</p>
+        <p class="hint" id="pin-help">Match a map frame automatically, or click the location on the built-in map.</p>
       </section>
       <section class="card compact">
         <h2>My finds <span id="find-count">0</span></h2>
@@ -64,6 +75,7 @@
         <p class="hint">These use your player position in the following map screenshot, so each location is approximate.</p>
         <p class="hint"><a href="/collection.html" target="_blank" rel="noopener">View your labeled blueprint collection (73/83)</a></p>
         <div class="row"><button id="export-data">Export JSON</button><label class="button" for="import-data">Import JSON</label><input type="file" id="import-data" accept="application/json" hidden></div>
+        <p class="hint">JSON backups use built-in maps and percentage positions. Only the new version 2 backup format can be imported; older backups are no longer supported.</p>
         <h3>Share confirmed blueprints</h3>
         <label for="game-name">In-game name</label><div class="row"><input id="game-name" maxlength="40" placeholder="For example: ZHomeSlice"><button id="read-game-name" type="button">Read from game</button></div>
         <button id="share-blueprints" type="button" class="full">Copy blueprint JSON and open Form</button>
@@ -145,7 +157,7 @@
         <p class="hint map-hint">Use the mouse wheel to zoom toward the pointer. Hover over stacked dots or names to spread them; lines lead back to each saved spot. A numbered dot combines finds with the same name—click it to choose one to review or edit.</p>
       </section>
       <section class="frame-panel" id="frame-panel" hidden>
-        <div class="panel-heading"><h2>Captured game frame</h2><button id="use-frame-map">Use as map image</button></div>
+        <div class="panel-heading"><h2>Captured game frame</h2></div>
         <canvas id="frame-canvas"></canvas>
         <p class="hint">Use this as a visual reference. The game may recenter the map on your player, so the arrow’s screen position is not a world coordinate.</p>
       </section>

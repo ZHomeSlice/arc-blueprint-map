@@ -24,3 +24,12 @@ test('CSV import handles quoted JSON and keeps the latest valid response per pla
   assert.equal(result.players[0].finds[0].name, 'New');
   assert.equal(result.rejected, 1);
 });
+
+test('community sharing and import exclude custom maps and pixel-coordinate finds', () => {
+  const good = { id: 'f', name: 'Defibrillator', map: 'Stella Montis Upper', x: .25, y: .5, foundAt: '2026-10-01T12:00:00Z' };
+  const payload = buildSharePayload('Player', [good, { ...good, map: 'Custom map' }, { ...good, x: 250 }]);
+  assert.equal(payload.finds.length, 1);
+  const raw = JSON.stringify({ ...payload, finds: [...payload.finds, { ...good, map: 'Custom map' }, { ...good, x: 250 }] });
+  const csv = `Game name,Blueprint JSON\nPlayer,"${raw.replaceAll('"', '""')}"\n`;
+  assert.equal(importCommunityCsv(csv).players[0].finds.length, 1);
+});

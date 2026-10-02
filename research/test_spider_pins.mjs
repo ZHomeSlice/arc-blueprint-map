@@ -5,7 +5,8 @@ const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google
 try {
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
   await page.goto('http://127.0.0.1:4177/');
-  await page.click('#use-stella-upper');
+  await page.locator('#preset-map').selectOption('stella-upper');
+  await page.locator('#use-preset-map').click();
   await page.evaluate(() => {
     const key = 'arc-blueprint-map-v1';
     const data = JSON.parse(localStorage.getItem(key));

@@ -32,7 +32,8 @@ try {
     };
   });
   await page.goto('http://127.0.0.1:4177/');
-  await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
+  await page.locator('#preset-map').selectOption('stella-upper');
+  await page.locator('#use-preset-map').click();
   await page.getByRole('button', { name: 'Start capture' }).click();
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.some(s => s.name === 'SEEKER GRENADE'));
   await page.evaluate(() => { window.testOcrText = 'DEFIBRILLATOR BLUEPRINT'; });

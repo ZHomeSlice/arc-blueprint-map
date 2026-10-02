@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { blueprintFromText, clamp01, isOwnCommunityDuplicate, removeRecentDuplicateDiscoveries } from '../public/logic.js';
 
+test('reads noisy Spaceport tooltip titles against the catalog', () => {
+  const names = ['Silencer I', 'Silencer II', 'Extended Shotgun Mag II'];
+  assert.equal(blueprintFromText('(ole RPV EL SILENCER Il BLUEPRINT\nModerately reduces noise', names), 'SILENCER II');
+  assert.equal(blueprintFromText('CONTAINER 4/8 EXTENDED SHOTGUN MAG II\nBLUEPRINT\n2 SN Moderately extends the ammo capacity cl', names), 'EXTENDED SHOTGUN MAG II');
+  assert.equal(blueprintFromText('EXTENDED SHOTGUN MAG II\nBLUEPRINT\nModerately extends capacity'), 'EXTENDED SHOTGUN MAG II');
+});
+
 test('recognizes a blueprint on the same or next line', () => {
   assert.equal(blueprintFromText('Found\nAnvil Blueprint\nRare'), 'Anvil');
   assert.equal(blueprintFromText('Anvil\nBlueprint'), 'Anvil');

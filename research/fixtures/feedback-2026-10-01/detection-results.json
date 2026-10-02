@@ -1,0 +1,2821 @@
+{
+  "summary": {
+    "negativeExamples": 13,
+    "positiveExamples": 2,
+    "before": {
+      "falsePositiveExamples": 11,
+      "falsePositiveTrials": 149,
+      "missedPositiveTrials": 0
+    },
+    "after": {
+      "falsePositiveExamples": 0,
+      "falsePositiveTrials": 0,
+      "missedPositiveTrials": 0
+    }
+  },
+  "results": [
+    {
+      "id": "4168a622-8331-4a05-9aa4-2b26bc6027cc",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.42239583333333336,
+        "bookScore": 0.16666666666666666,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "cb0e1277-db79-47a3-a815-e45195f0c622",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.4515625,
+        "bookScore": 0.16666666666666666,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "e40181b6-e81d-4d4c-93cf-8c42fbf4f985",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.4473958333333333,
+        "bookScore": 0.2,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "444afb7e-c462-45dc-8b07-e987127304cb",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.4901041666666667,
+        "bookScore": 0.13333333333333333,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "f00c7937-ecc3-4ad5-b9d1-808ebacc861b",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.5651041666666666,
+        "bookScore": 0.16666666666666666,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "70fbe02f-bd5d-45da-b19a-6d958cb10db7",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.4197916666666667,
+        "bookScore": 0.13333333333333333,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "366eb3b7-a122-4bb7-bf09-dc25efcfa43a",
+      "label": "not_blueprint",
+      "name": null,
+      "evidence": {
+        "score": 0.4109375,
+        "bookScore": 0.13333333333333333,
+        "bookBackground": 1,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": false,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": null
+    },
+    {
+      "id": "031f40e9-e740-42a7-8097-c8f902c4cedf",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.41041666666666665,
+        "bookScore": 0.08333333333333333,
+        "bookBackground": 0.06666666666666667,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [],
+        "updated": []
+      }
+    },
+    {
+      "id": "1a5e083d-96ed-4a1d-9812-210b2b1d6e12",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.5276041666666667,
+        "bookScore": 1,
+        "bookBackground": 0,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [
+          5
+        ],
+        "updated": []
+      }
+    },
+    {
+      "id": "48d539dc-4eeb-4690-99f6-aab6adeca23d",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.7932291666666667,
+        "bookScore": 1,
+        "bookBackground": 0,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [
+          4
+        ],
+        "updated": []
+      }
+    },
+    {
+      "id": "0c3b57ae-2109-4c61-a56f-93af5d05e9f1",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.4088541666666667,
+        "bookScore": 1,
+        "bookBackground": 0,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [
+          1,
+          2
+        ],
+        "updated": []
+      }
+    },
+    {
+      "id": "e2fd1601-a005-4fda-9241-fe3d9e52e450",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.5677083333333334,
+        "bookScore": 0.8,
+        "bookBackground": 0,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [
+          1,
+          2
+        ],
+        "updated": []
+      }
+    },
+    {
+      "id": "fc505303-6b38-4b45-9f69-0de5f3d9b6ff",
+      "label": "not_blueprint",
+      "name": "Unidentified blueprint",
+      "expectedFrameSlots": [],
+      "evidence": {
+        "score": 0.7083333333333334,
+        "bookScore": 0,
+        "bookBackground": 0,
+        "isBlueprint": false
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": false,
+          "cropped": false
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": true,
+        "previous": [
+          1,
+          2
+        ],
+        "updated": []
+      }
+    },
+    {
+      "id": "8789c7d8-b675-4ebc-8b96-acdfbd5b4802",
+      "label": "blueprint",
+      "name": "Gas Mine",
+      "expectedFrameSlots": [
+        3
+      ],
+      "evidence": {
+        "score": 0.5145833333333333,
+        "bookScore": 0.8,
+        "bookBackground": 1,
+        "isBlueprint": true
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        }
+      ],
+      "frame": {
+        "panel": false,
+        "previousPanel": false,
+        "previous": [
+          3
+        ],
+        "updated": [
+          3
+        ]
+      }
+    },
+    {
+      "id": "fe58c0f7-c35d-4467-af7b-92da9e71458d",
+      "label": "blueprint",
+      "name": "Defibrillator",
+      "expectedFrameSlots": [
+        5
+      ],
+      "evidence": {
+        "score": 0.696875,
+        "bookScore": 0.8666666666666667,
+        "bookBackground": 1,
+        "isBlueprint": true
+      },
+      "trials": [
+        {
+          "width": 1280,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1280,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 1600,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 1,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 2,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 3,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 4,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 5,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 6,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 7,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        },
+        {
+          "width": 2048,
+          "slot": 8,
+          "previous": true,
+          "updated": true,
+          "cropped": true
+        }
+      ],
+      "frame": {
+        "panel": true,
+        "previousPanel": true,
+        "previous": [
+          5
+        ],
+        "updated": [
+          5
+        ]
+      }
+    }
+  ]
+}

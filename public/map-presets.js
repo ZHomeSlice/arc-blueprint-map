@@ -22,6 +22,9 @@ export const mapPresets = [
 ];
 
 export function presetForMode(mode) { return mapPresets.find(preset => preset.id === mode); }
+// The original Stella presets cover the default close-up map view. A raid
+// map can also be zoomed out to show the whole level.
+export const mapZoomFallbackScales = [0.36, 0.40, 0.45, 0.50, 0.56, 0.63, 0.71, 0.80, 0.90, 1.0, 1.1, 1.2];
 export function presetForMap(map) {
   const preset = presetForMode(map?.mode);
   return preset?.image === map?.image ? preset : null;

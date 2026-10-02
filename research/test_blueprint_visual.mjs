@@ -10,10 +10,12 @@ const cases = [
   ['20260928083718_1.jpg', 'BLUEPRINTS FOUND: 73/83', []],
   ['20260927195819_1.jpg', 'STELLA MONTIS MAP', []],
 ];
-const backup = JSON.parse(await readFile('C:/Users/zhome/Downloads/arc-blueprint-map-2026-09-28.json', 'utf8'));
-const capturedCases = backup.sightings.map((sighting, index) => [
-  `captured-${index}`, sighting.frame, index === 1 ? [3] : [],
-]);
+const feedbackRoot = new URL('./fixtures/feedback-2026-10-01/', import.meta.url);
+const feedback = JSON.parse((await readFile(new URL('manifest.json', feedbackRoot), 'utf8')).replace(/^\uFEFF/, ''));
+const capturedCases = await Promise.all(feedback.filter(example => example.capturedFrameFile).map(async example => [
+  `feedback-${example.id}`, `data:image/jpeg;base64,${(await readFile(new URL(example.capturedFrameFile, feedbackRoot))).toString('base64')}`,
+  example.frameBlueprintSlots,
+]));
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 try {
   const page = await browser.newPage();

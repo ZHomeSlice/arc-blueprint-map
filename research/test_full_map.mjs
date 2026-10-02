@@ -17,16 +17,16 @@ try {
     const data = await readFile(`${screenshotRoot}/${filename}`);
     const url = `data:image/jpeg;base64,${data.toString('base64')}`;
     const result = await page.evaluate(async (imageUrl) => {
-      const { matchStellaUpper, pointOnStellaUpper } = await import('/full-map-match.js');
+      const { matchFullMap, pointOnFullMap } = await import('/full-map-match.js');
       const { detectPlayerArrow } = await import('/map-match.js');
       const base = new Image(); base.src = '/maps/stella-upper.jpg'; await base.decode();
       const frame = new Image(); frame.src = imageUrl; await frame.decode();
       const canvas = document.createElement('canvas'); canvas.width = 1600; canvas.height = 900;
       canvas.getContext('2d').drawImage(frame, 0, 0, canvas.width, canvas.height);
       const start = performance.now();
-      const match = matchStellaUpper(base, canvas);
+      const match = matchFullMap(base, canvas, { scales: [0.29, 0.30, 0.31], minScore: 0.62 });
       const arrow = detectPlayerArrow(canvas);
-      return { match, arrow, point: match && arrow && pointOnStellaUpper(match, arrow), milliseconds: Math.round(performance.now() - start) };
+      return { match, arrow, point: match && arrow && pointOnFullMap(match, arrow), milliseconds: Math.round(performance.now() - start) };
     }, url);
     console.log(label, JSON.stringify(result));
   }

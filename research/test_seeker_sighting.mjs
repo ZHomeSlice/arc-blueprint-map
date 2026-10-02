@@ -18,10 +18,10 @@ try {
   const savedPage = await browser.newPage();
   await savedPage.addInitScript(encoded => {
     localStorage.setItem('arc-blueprint-map-v1', JSON.stringify({
-      version: 1, currentMap: 'Test Map', maps: { 'Test Map': { image: null } }, finds: [], dismissedTiles: [],
+      version: 1, currentMap: 'Stella Montis Upper', maps: { 'Stella Montis Upper': { mode: 'stella-upper', image: '/maps/stella-upper.jpg', ratio: 5120 / 3500 } }, finds: [], dismissedTiles: [],
       sightings: [
-        { id: 'newer', name: 'Unidentified blueprint', map: 'Test Map', position: { x: .4, y: .4 }, seenAt: '2026-09-29T23:00:00Z' },
-        { id: 'seeker', name: 'Unidentified blueprint', map: 'Test Map', position: { x: .23, y: .13 },
+        { id: 'newer', name: 'Unidentified blueprint', map: 'Stella Montis Upper', position: { x: .4, y: .4 }, seenAt: '2026-09-29T23:00:00Z' },
+        { id: 'seeker', name: 'Unidentified blueprint', map: 'Stella Montis Upper', position: { x: .23, y: .13 },
           seenAt: '2026-09-29T23:49:31Z', tilePreview: `data:image/png;base64,${encoded}`,
           iconCandidates: [{ name: 'Fireworks Box', icon: '/catalog-icons/fireworks-box-blueprint.webp', score: .7 }] },
       ],

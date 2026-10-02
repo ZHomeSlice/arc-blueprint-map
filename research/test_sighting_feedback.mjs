@@ -73,7 +73,8 @@ try {
     'Forgotten examples returned after reload');
   await page.evaluate(() => localStorage.removeItem('arc-blueprint-map-v1'));
   await page.reload();
-  await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
+  await page.locator('#preset-map').selectOption('stella-upper');
+  await page.locator('#use-preset-map').click();
   await page.evaluate(async () => {
     const image = new Image(); image.src = '/feedback-second.jpg'; await image.decode();
     const frame = document.createElement('canvas'); frame.width = 1600; frame.height = 900;

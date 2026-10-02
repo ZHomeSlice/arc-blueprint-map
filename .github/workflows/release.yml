@@ -16,6 +16,20 @@ jobs:
       - name: Build the shareable Windows ZIP
         shell: pwsh
         run: ./Build-Shareable.ps1 -Portable
+      - name: Verify shareable source with bundled runtime
+        shell: pwsh
+        run: |
+          $source = Get-ChildItem -Path dist -Directory -Filter 'arc-blueprint-map-source-*' | Select-Object -First 1
+          $runtime = Get-ChildItem -Path $source.FullName -Filter node.exe -File -Recurse |
+            Where-Object { $_.Directory.Name -eq 'runtime' } | Select-Object -First 1
+          if (-not $runtime) { throw 'The bundled Windows runtime was not produced.' }
+          Push-Location $source.FullName
+          try {
+            & $runtime.FullName --test test/*.test.js
+            if ($LASTEXITCODE -ne 0) { throw 'Shareable source tests failed.' }
+            & $runtime.FullName --check public/app.js
+            if ($LASTEXITCODE -ne 0) { throw 'Packaged app syntax check failed.' }
+          } finally { Pop-Location }
       - name: Publish GitHub release
         shell: pwsh
         env:
@@ -24,4 +38,9 @@ jobs:
           $archive = Get-ChildItem -Path dist -Filter 'ARC-Blueprint-Map-Windows-x64.zip' -File -Recurse |
             Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
           if (-not $archive) { throw 'The Windows portable ZIP was not produced.' }
-          gh release create "$env:GITHUB_REF_NAME" "$($archive.FullName)" --generate-notes
+          $notes = Join-Path 'distribution/releases' "$env:GITHUB_REF_NAME.md"
+          if (Test-Path -LiteralPath $notes) {
+            gh release create "$env:GITHUB_REF_NAME" "$($archive.FullName)" --title "ARC Blueprint Map $env:GITHUB_REF_NAME" --notes-file "$notes"
+          } else {
+            gh release create "$env:GITHUB_REF_NAME" "$($archive.FullName)" --generate-notes
+          }

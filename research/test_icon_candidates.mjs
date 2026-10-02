@@ -9,7 +9,8 @@ try {
   const page = await browser.newPage();
   await page.route('**/test-defibrillator.jpg', route => route.fulfill({ status: 200, contentType: 'image/jpeg', body: inventory }));
   await page.goto('http://127.0.0.1:4177/');
-  await page.getByRole('button', { name: 'Use full Stella Montis upper map' }).click();
+  await page.locator('#preset-map').selectOption('stella-upper');
+  await page.locator('#use-preset-map').click();
   await page.evaluate(async () => {
     const image = new Image(); image.src = '/test-defibrillator.jpg'; await image.decode();
     const frame = document.createElement('canvas'); frame.width = 1600; frame.height = 900;

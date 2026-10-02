@@ -1,17 +1,17 @@
 import { loadAnalysisImage, analysisCanvas } from './analysis-image.js';
 import { rankBlueprintPixels } from './icon-match.js';
-import { detectPlayerArrow, matchMapFrames } from './map-match.js';
+import { detectPlayerArrow } from './map-match.js';
 import { matchFullMap, mapPatchAppearance, pointOnFullMap } from './full-map-match.js';
 import { selectMapCandidate } from './map-detect.js';
-import { mapPresets } from './map-presets.js';
+import { mapPresets, mapZoomFallbackScales } from './map-presets.js';
 
 const bases = new Map();
-async function baseImage(url, custom = false) {
-  const key = `${custom}:${url}`;
+async function baseImage(url) {
+  const key = url;
   if (bases.has(key)) {
     const image = bases.get(key); bases.delete(key); bases.set(key, image); return image;
   }
-  const image = await loadAnalysisImage(url, custom ? 240 : 768, custom ? 135 : null);
+  const image = await loadAnalysisImage(url, 768);
   bases.set(key, image);
   // Keep the current pair of floors, without accumulating every visited map.
   if (bases.size > 2) {
@@ -23,21 +23,21 @@ async function baseImage(url, custom = false) {
 async function matchMap(frame, args) {
   const arrow = detectPlayerArrow(frame);
   if (!arrow) return { error: 'The player arrow is not clear on this map view. Keep the map open or save a screenshot.' };
-  if (args.customImage) {
-    const match = matchMapFrames(await baseImage(args.customImage, true), frame);
-    if (!match) return { error: 'Could not align the custom map screenshot. Check zoom, crop, and layer.' };
-    const position = { x: arrow.x - match.dx / match.width, y: arrow.y - match.dy / match.height };
-    if (position.x < 0 || position.x > 1 || position.y < 0 || position.y > 1) return { error: 'The player position falls outside the custom map.' };
-    return { position, anchors: match.anchors, mapName: args.mapName };
-  }
   const candidates = [];
   for (const preset of mapPresets.filter(entry => entry.family === args.family)) {
     const base = await baseImage(preset.image);
-    const match = matchFullMap(base, frame, { scales: preset.scales, minScore: -1 });
+    let match = matchFullMap(base, frame, { scales: preset.scales, minScore: -1 });
+    let appearance = match && mapPatchAppearance(base, frame, match);
+    if (preset.scales && (!match || match.score < (preset.minScore ?? 0.72) || appearance.mae > 45)) {
+      const zoomed = matchFullMap(base, frame, { scales: mapZoomFallbackScales, minScore: -1, refineScale: true });
+      if (zoomed && (!match || zoomed.score > match.score)) {
+        match = zoomed; appearance = mapPatchAppearance(base, frame, match);
+      }
+    }
     if (!match) continue;
     const position = pointOnFullMap(match, arrow);
     if (position.x < 0 || position.x > 1 || position.y < 0 || position.y > 1) continue;
-    candidates.push({ preset, match, position, appearance: mapPatchAppearance(base, frame, match) });
+    candidates.push({ preset, match, position, appearance });
   }
   const selected = selectMapCandidate(candidates);
   if (selected.error) return selected;

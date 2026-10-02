@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { chromium } from 'file:///C:/Users/zhome/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import { emptyData } from '../public/backup.js';
+
+const tile = await readFile(new URL('./fixtures/feedback-2026-10-01/15-blueprint-capturedTile.jpg', import.meta.url));
+const seed = emptyData();
+const defib = { id: 'test-defib', name: 'DEFIBRILLATOR', seenAt: new Date().toISOString(),
+  frame: `data:image/jpeg;base64,${tile.toString('base64')}`, tilePreview: `data:image/jpeg;base64,${tile.toString('base64')}` };
+seed.sightings = [defib];
+assert(defib?.frame);
+const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+try {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('http://127.0.0.1:4177/');
+  await page.evaluate(seed => localStorage.setItem('arc-blueprint-map-v1', JSON.stringify(seed)), seed);
+  await page.reload();
+  const row = page.locator('#sighting-list li').filter({ hasText: 'DEFIBRILLATOR' });
+  const cross = await row.getByRole('button', { name: 'Not a blueprint', exact: true }).boundingBox();
+  const pin = await row.getByRole('button', { name: 'Mark location missed' }).boundingBox();
+  assert(pin.y >= cross.y + cross.height, 'Missed-location icon must sit below the ×');
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')));
+  await row.getByRole('button', { name: 'Mark location missed' }).click();
+  assert.equal(await page.locator('#sighting-list li').filter({ hasText: 'DEFIBRILLATOR' }).count(), 0);
+  await page.locator('#missed-locations summary').click();
+  assert.match(await page.locator('#missed-list').innerText(), /DEFIBRILLATOR.*Location missed/);
+  await page.reload();
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')));
+  const missed = after.sightings.find(s => s.id === defib.id);
+  assert(missed.locationMissed && missed.locationMissedAt);
+  assert.equal(missed.frame, defib.frame);
+  assert.equal(missed.dismissed, defib.dismissed);
+  assert.equal(missed.reviewVerdict, defib.reviewVerdict);
+  assert.deepEqual(after.dismissedTiles, before.dismissedTiles);
+  assert.deepEqual(after.finds, before.finds);
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export JSON', exact: true }).click();
+  const download = await downloadPromise;
+  const chunks = []; for await (const chunk of await download.createReadStream()) chunks.push(chunk);
+  const backup = JSON.parse(Buffer.concat(chunks));
+  assert(backup.sightings.find(s => s.id === defib.id).locationMissed, 'Private backup must preserve missed records');
+  await page.locator('#missed-locations summary').click();
+  await page.getByRole('button', { name: 'Restore missed location' }).click();
+  assert.equal(await page.locator('#sighting-list li').filter({ hasText: 'DEFIBRILLATOR' }).count(), 1);
+  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('arc-blueprint-map-v1')).sightings.find(s => s.id === 'test-defib'));
+  assert(!restored.locationMissed && !restored.locationMissedAt);
+  assert.equal(restored.reviewVerdict, defib.reviewVerdict);
+  assert.deepEqual(errors, []);
+  console.log('PASS: icon below ×; archive, reload, backup, restore; evidence preserved; no false-alert training.');
+} finally { await browser.close(); }

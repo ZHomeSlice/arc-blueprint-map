@@ -5,7 +5,6 @@ const BASE_WIDTH = 768;
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1152;
 const PATCH = { x: 870, y: 440, w: 170, h: 100 };
-const STELLA_SCALES = [0.29, 0.30, 0.31];
 const OTHER_SCALES = [0.28, 0.30, 0.33, 0.36, 0.40, 0.45, 0.50, 0.56, 0.63, 0.71];
 const SAMPLE_STEP = 3;
 const baseGrays = new WeakMap();
@@ -77,6 +76,12 @@ export function matchFullMap(baseSource, screenSource, options = {}) {
     }
   }
   if (!best) return null;
+  if (options.refineScale) {
+    const scales = Array.from({ length: 9 }, (_, index) => Number((best.scale + (index - 4) * 0.01).toFixed(3)))
+      .filter(scale => scale > 0);
+    const fine = matchFullMap(baseSource, screenSource, { scales, minScore: -1 });
+    if (fine && fine.score > best.score) return fine.score >= (options.minScore ?? 0.72) ? fine : null;
+  }
   let refined = best;
   for (let y = Math.max(0, best.y - 3); y <= Math.min(baseHeight - best.template.height, best.y + 3); y++) {
     for (let x = Math.max(0, best.x - 3); x <= Math.min(BASE_WIDTH - best.template.width, best.x + 3); x++) {
@@ -118,10 +123,3 @@ export function mapPatchAppearance(baseSource, screenSource, match) {
   const count = width * height;
   return { mae: difference / count, screenMean: screenTotal / count, baseMean: baseTotal / count };
 }
-
-// Preserve the calibrated Stella matcher for existing data and screenshots.
-export function matchStellaUpper(baseSource, screenSource) {
-  return matchFullMap(baseSource, screenSource, { scales: STELLA_SCALES, minScore: 0.62 });
-}
-
-export const pointOnStellaUpper = pointOnFullMap;

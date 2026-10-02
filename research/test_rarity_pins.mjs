@@ -7,9 +7,9 @@ try {
   await page.addInitScript(() => {
     const names = ['Silencer II', 'Hullcracker', 'Aphelion', 'Snap Hook', 'Vita Shot', 'Unknown test blueprint'];
     localStorage.setItem('arc-blueprint-map-v1', JSON.stringify({
-      version: 1, currentMap: 'Test Map', maps: { 'Test Map': { image: null } },
-      finds: names.map((name, i) => ({ id: `rarity-${i}`, name, map: 'Test Map', x: .1 + i * .12, y: .4, foundAt: '2026-09-29T12:00:00Z' })),
-      sightings: [{ id: 'pending', name: 'Unidentified blueprint', map: 'Test Map', position: { x: .85, y: .65 },
+      version: 1, currentMap: 'Stella Montis Upper', maps: { 'Stella Montis Upper': { mode: 'stella-upper', image: '/maps/stella-upper.jpg', ratio: 5120 / 3500 } },
+      finds: names.map((name, i) => ({ id: `rarity-${i}`, name, map: 'Stella Montis Upper', x: .1 + i * .12, y: .4, foundAt: '2026-09-29T12:00:00Z' })),
+      sightings: [{ id: 'pending', name: 'Unidentified blueprint', map: 'Stella Montis Upper', position: { x: .85, y: .65 },
         seenAt: '2026-09-29T12:00:00Z', dismissed: false, savedFindId: null }], dismissedTiles: [],
     }));
   });

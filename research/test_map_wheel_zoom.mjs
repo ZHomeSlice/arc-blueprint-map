@@ -5,7 +5,8 @@ const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google
 try {
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
   await page.goto('http://127.0.0.1:4177/');
-  await page.click('#use-stella-upper');
+  await page.locator('#preset-map').selectOption('stella-upper');
+  await page.locator('#use-preset-map').click();
   const map = page.locator('#map');
   const bounds = await map.boundingBox();
   assert.ok(bounds?.width > 400 && bounds?.height > 300, 'preset map is visible');

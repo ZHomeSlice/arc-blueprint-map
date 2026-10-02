@@ -1,3 +1,5 @@
+import { isBuiltInMap, isNormalizedPosition } from './backup.js';
+
 export const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeUqQvtU1s4_fbFA6svtEw4B2bdZnaBJQqsVHnOguybAK9eNA/viewform';
 export const COMMUNITY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSLsdODLTK8GpXX_1061l1kk15j4yPDVwURrXOgcZCbxulwiIgsqDSPdUKc87G6xark2ofznSMi3DMB/pub?gid=929643861&single=true&output=csv';
 export const COMMUNITY_STORAGE_KEY = 'arc-blueprint-community-v1';
@@ -29,9 +31,7 @@ export function buildSharePayload(gameName, finds, sightings = []) {
   const name = cleanName(gameName, 40);
   if (!name) throw new Error('Enter your in-game name first.');
   const byId = new Map(sightings.map(sighting => [sighting.id, sighting]));
-  const discoveries = finds.filter(find => find && find.name && find.map &&
-    Number.isFinite(find.x) && find.x >= 0 && find.x <= 1 &&
-    Number.isFinite(find.y) && find.y >= 0 && find.y <= 1 &&
+  const discoveries = finds.filter(find => find && find.name && isBuiltInMap(find.map) && isNormalizedPosition(find) &&
     Number.isFinite(Date.parse(find.foundAt))).map(find => {
     const reliability = reliabilityForFind(find, byId.get(find.sightingId));
     return { name: cleanName(find.name), map: cleanName(find.map), x: +find.x.toFixed(6), y: +find.y.toFixed(6),
@@ -77,9 +77,7 @@ export function importCommunityCsv(csv) {
       const payload = JSON.parse(raw);
       if (payload?.version !== 1 || !Array.isArray(payload.finds) ||
           cleanName(payload.gameName, 40).toLowerCase() !== name.toLowerCase()) throw new Error('invalid payload');
-      const finds = payload.finds.filter(find => find && cleanName(find.name) && cleanName(find.map) &&
-        Number.isFinite(find.x) && find.x >= 0 && find.x <= 1 &&
-        Number.isFinite(find.y) && find.y >= 0 && find.y <= 1 &&
+      const finds = payload.finds.filter(find => find && cleanName(find.name) && isBuiltInMap(find.map) && isNormalizedPosition(find) &&
         Number.isFinite(Date.parse(find.foundAt))).map(find => ({
         name: cleanName(find.name), map: cleanName(find.map), x: find.x, y: find.y,
         foundAt: new Date(find.foundAt).toISOString(), method: find.method === 'automatic' ? 'automatic' : 'manual',

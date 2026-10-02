@@ -1,0 +1,412 @@
+[
+  {
+    "id": "4168a622-8331-4a05-9aa4-2b26bc6027cc",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "01-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "cb0e1277-db79-47a3-a815-e45195f0c622",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "02-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "e40181b6-e81d-4d4c-93cf-8c42fbf4f985",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "03-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "444afb7e-c462-45dc-8b07-e987127304cb",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "04-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "f00c7937-ecc3-4ad5-b9d1-808ebacc861b",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "05-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "70fbe02f-bd5d-45da-b19a-6d958cb10db7",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "06-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "366eb3b7-a122-4bb7-bf09-dc25efcfa43a",
+    "verdict": "not_blueprint",
+    "predictedName": null,
+    "reviewedName": null,
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [],
+      "ocrText": null
+    },
+    "capturedTileFile": "07-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": null
+  },
+  {
+    "id": "031f40e9-e740-42a7-8097-c8f902c4cedf",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Extended Light Mag III",
+          "icon": "/catalog-icons/extended-light-mag-iii-recipe.webp",
+          "score": 0.5328805147903116
+        },
+        {
+          "name": "Extended Light Mag II",
+          "icon": "/catalog-icons/extended-light-mag-ii-recipe.webp",
+          "score": 0.5036579904443462
+        },
+        {
+          "name": "Extended Barrel III",
+          "icon": "/catalog-icons/extended-barrel-recipe.webp",
+          "score": 0.4980053089020438
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "08-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "08-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "1a5e083d-96ed-4a1d-9812-210b2b1d6e12",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Blue Light Stick",
+          "icon": "/catalog-icons/blue-light-stick-blueprint.webp",
+          "score": 0.4309629461377393
+        },
+        {
+          "name": "Venator",
+          "icon": "/catalog-icons/venator-recipe.webp",
+          "score": 0.298858192741802
+        },
+        {
+          "name": "Vertical Grip III",
+          "icon": "/catalog-icons/vertical-grip-iii-recipe.webp",
+          "score": 0.2482386071362927
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "09-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "09-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "48d539dc-4eeb-4690-99f6-aab6adeca23d",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Blue Light Stick",
+          "icon": "/catalog-icons/blue-light-stick-blueprint.webp",
+          "score": 0.3583624457344162
+        },
+        {
+          "name": "Vertical Grip III",
+          "icon": "/catalog-icons/vertical-grip-iii-recipe.webp",
+          "score": 0.2803916010492788
+        },
+        {
+          "name": "Canto",
+          "icon": "/catalog-icons/canto-blueprint.webp",
+          "score": 0.2116403075979044
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "10-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "10-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "0c3b57ae-2109-4c61-a56f-93af5d05e9f1",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Blue Light Stick",
+          "icon": "/catalog-icons/blue-light-stick-blueprint.webp",
+          "score": 0.41931430800084163
+        },
+        {
+          "name": "Silencer I",
+          "icon": "/catalog-icons/silencer-i-recipe.webp",
+          "score": 0.3257064212821117
+        },
+        {
+          "name": "Torrente",
+          "icon": "/catalog-icons/torrent-i-recipe.webp",
+          "score": 0.3115378134068099
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "11-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "11-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "e2fd1601-a005-4fda-9241-fe3d9e52e450",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Torrente",
+          "icon": "/catalog-icons/torrent-i-recipe.webp",
+          "score": 0.45055647587807884
+        },
+        {
+          "name": "Blue Light Stick",
+          "icon": "/catalog-icons/blue-light-stick-blueprint.webp",
+          "score": 0.38735204821100416
+        },
+        {
+          "name": "Extended Light Mag III",
+          "icon": "/catalog-icons/extended-light-mag-iii-recipe.webp",
+          "score": 0.35039907762154154
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "12-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "12-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "fc505303-6b38-4b45-9f69-0de5f3d9b6ff",
+    "verdict": "not_blueprint",
+    "predictedName": "Unidentified blueprint",
+    "reviewedName": "Unidentified blueprint",
+    "notes": "",
+    "recognition": {
+      "nameSource": null,
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Blue Light Stick",
+          "icon": "/catalog-icons/blue-light-stick-blueprint.webp",
+          "score": 0.3437573053449461
+        },
+        {
+          "name": "Defibrillator",
+          "icon": "/catalog-icons/defibrillator-recipe.webp",
+          "score": 0.30831568229124845
+        },
+        {
+          "name": "Vita Shot",
+          "icon": "/catalog-icons/vita-shot-recipe.webp",
+          "score": 0.25215160676919535
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "13-not_blueprint-capturedTile.jpg",
+    "capturedFrameFile": "13-not_blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": []
+  },
+  {
+    "id": "8789c7d8-b675-4ebc-8b96-acdfbd5b4802",
+    "verdict": "blueprint",
+    "predictedName": "Gas Mine",
+    "reviewedName": "Gas Mine",
+    "notes": "",
+    "recognition": {
+      "nameSource": "user edited",
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Remote Raider Flare",
+          "icon": "/catalog-icons/remote-raider-flare-blueprint.webp",
+          "score": 0.7054401292214176
+        },
+        {
+          "name": "Gas Mine",
+          "icon": "/catalog-icons/gas-mine-blueprint.webp",
+          "score": 0.6980731497455112
+        },
+        {
+          "name": "Silencer I",
+          "icon": "/catalog-icons/silencer-i-recipe.webp",
+          "score": 0.6615136426678604
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "14-blueprint-capturedTile.jpg",
+    "capturedFrameFile": "14-blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": [
+      3
+    ]
+  },
+  {
+    "id": "fe58c0f7-c35d-4467-af7b-92da9e71458d",
+    "verdict": "blueprint",
+    "predictedName": "Defibrillator",
+    "reviewedName": "Defibrillator",
+    "notes": "",
+    "recognition": {
+      "nameSource": "user edited",
+      "slot": null,
+      "blueCoverage": null,
+      "iconConfidence": null,
+      "iconMargin": null,
+      "candidates": [
+        {
+          "name": "Remote Raider Flare",
+          "icon": "/catalog-icons/remote-raider-flare-blueprint.webp",
+          "score": 0.619632469890676
+        },
+        {
+          "name": "Defibrillator",
+          "icon": "/catalog-icons/defibrillator-recipe.webp",
+          "score": 0.5872597826327134
+        },
+        {
+          "name": "Venator",
+          "icon": "/catalog-icons/venator-recipe.webp",
+          "score": 0.5872196160093429
+        }
+      ],
+      "ocrText": null
+    },
+    "capturedTileFile": "15-blueprint-capturedTile.jpg",
+    "capturedFrameFile": "15-blueprint-capturedFrame.jpg",
+    "frameBlueprintSlots": [
+      5
+    ]
+  }
+]

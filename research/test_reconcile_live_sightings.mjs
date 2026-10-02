@@ -1,12 +1,19 @@
-import { readFile } from 'node:fs/promises';
 import { chromium } from 'file:///C:/Users/zhome/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
 
-const backup = JSON.parse(await readFile('C:/Users/zhome/Downloads/arc-blueprint-map-2026-09-28.json', 'utf8'));
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 try {
   const page = await browser.newPage();
   await page.goto('http://127.0.0.1:4177/');
-  await page.evaluate(value => localStorage.setItem('arc-blueprint-map-v1', JSON.stringify(value)), backup);
+  await page.evaluate(async () => {
+    const { emptyData } = await import('/backup.js');
+    const data = emptyData();
+    data.sightings = [
+      { id: 'safekeeper', name: 'Unidentified blueprint', map: data.currentMap, seenAt: '2026-09-28T15:38:11.795Z' },
+      { id: 'first', name: 'Unidentified blueprint', map: data.currentMap, seenAt: '2026-09-28T16:00:00Z' },
+      { id: 'second', name: 'Unidentified blueprint', map: data.currentMap, seenAt: '2026-09-28T16:05:00Z' },
+    ];
+    localStorage.setItem('arc-blueprint-map-v1', JSON.stringify(data));
+  });
   await page.reload();
   await page.getByRole('button', { name: 'Add the 4 finds from your screenshots' }).click();
   const linked = await page.evaluate(() => {

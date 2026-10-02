@@ -12,15 +12,23 @@ A local Windows tracker for places where you found blueprints in ARC Raiders. It
 
 The source-code ZIP from GitHub requires Node.js 20 or newer. After installing Node.js, use the same double-click launcher.
 
-The app runs at `http://127.0.0.1:4177/` and binds only to your computer. Game frames are processed in the browser. Finds, sightings, and map images are kept in that browser's local storage. Use **Export JSON** to back up your data or move it to another browser. Personal findings do not sync automatically.
+The app runs at `http://127.0.0.1:4177/` and binds only to your computer. Game frames are processed in the browser. Finds and sighting screenshots are kept in that browser's local storage. Use **Built-in map and floor → Use map** to browse a map or floor. Custom names, background uploads, and captured-frame backgrounds have been removed. Personal findings do not sync automatically.
+
+Positions are stored as map fractions from 0 to 1 and displayed as percentages: `0.25` means 25%. On startup, the app removes custom-map and invalid or pixel-coordinate records. It retains verified built-in-map records and shows a notice if records were discarded.
 
 Capture requests 2 FPS and at most 1600×900. Routine scanning checks small container and map patches; blueprint detection uses the upper-left quarter when a container opens. Text recognition runs only when a visible container has a recent blueprint needing a name. Full-frame processing is reserved for discovery snapshots, map location matching, and manual captures. Stopping capture releases scanning buffers and text-recognition resources.
 
 Use **Search blueprints** to filter the full catalog, then select a result. Pin editing also searches all catalog blueprints, with image matches first. The match list supports mouse-wheel scrolling without zooming the map. Manual saves and edits require a catalog selection.
 
+**Watch for blueprints → Finds · last 60 minutes** shows saved finds across all maps and floors, newest first. Click a blueprint to switch to its map, zoom to the location, and open its pin details. The list refreshes every minute; older finds remain saved in **My finds**.
+
+The crossed-out pin below the review × marks a **missed location** and moves it out of the active queue. Its screenshots and notes stay in **Missed locations** and private JSON backups, and the restore button returns it to review. It does not mark the item as a false blueprint alert.
+
+Map attempts now keep a screenshot and failure reason for review. To correct a sighting or saved pin, select it and use **Correct selected sighting or pin from a saved in-game map screenshot**. Map matching recognizes the filled player arrow and supports more zoom levels. Open the map within three minutes of discovering a blueprint and keep it open while matching retries.
+
 To share confirmed finds, check **Share** beside each find, enter your in-game name, and select **Copy blueprint JSON and open Form**. Paste into the prefilled Google Form's **Blueprint JSON** field and select **Submit**. The linked community sheet receives the submission. This sends names, map and floor, positions, times, and a sortable reliability estimate; it sends no screenshots or map images. Older checked finds with names outside the catalog must be corrected through search or unchecked before sharing. Download the community CSV from the link in the app and import it separately from your own finds. Community pins can be filtered by player, date, and reliability.
 
-**Export JSON** downloads a private backup, not a community submission. If you have only the exported file, first use **Import JSON**, review and check the finds to share, then use **Copy blueprint JSON and open Form**.
+**Export JSON** downloads a version 2 private backup with an explicit coordinate system and built-in map IDs, not a community submission. Only new version 2 backups can be imported; older backups are no longer supported. Import validates the entire backup before changing your data. Old backup files on disk are not deleted. If you have a new-format exported file, first use **Import JSON**, review and check the finds to share, then use **Copy blueprint JSON and open Form**.
 
 ## Current limits
 
